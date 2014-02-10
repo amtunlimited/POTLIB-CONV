@@ -1,0 +1,63 @@
+ test geometry in atomic units
+    1  -1.63215   0.95100   0.00000
+    4   1.88900   0.00000   0.00000
+    7   0.00000   0.00000   0.00000
+ test geometry in angstroms
+    1  -0.86370   0.50325   0.00000
+    4   0.99962   0.00000   0.00000
+    7   0.00000   0.00000   0.00000
+
+
+  H20 Potencial from KH                                                      
+                                                                             
+                                                                             
+                                                                             
+                                                                             
+
+
+   MAX. AND ACTUAL NO. OF EXCITED SURFACES:   0       0
+   MAX. AND ACTUAL ORDER OF DERIVATIVES:      0       0
+
+  The potential routine in POTLIB assumes a
+  default labeling of the atoms.  The user has
+  made the following selection of atomic labels:
+
+               DEFAULT                         USER-SELECTED
+
+  Atom  1 is       H                                   H 
+  Atom  2 is       O                                   O 
+  Atom  3 is       H                                   H 
+
+
+  Atom  1  H  is a member of Reactant #1
+  Atom  2  O  is a member of Reactant #1
+  Atom  3  H  is a member of Reactant #2
+
+  The Potential Energy is Zero for the following
+  geometric arrangement:  The reactants are at
+  their equilibrium geometries, widely separated.
+
+
+  Reactant #1
+  H O 
+
+  Reactant #2
+  H 
+
+  The default units are:
+     BOHR FOR DISTANCE
+     HARTREE FOR ENERGY
+
+
+  The user has chosen units :
+     BOHR                 FOR DISTANCE
+     HARTREE              FOR ENERGY
+
+
+  To reset the zero-of-energy, assign a
+  non-zero value to the variable ANUZERO.
+  The value of ANUZERO will be SUBTRACTED from
+  the energy calculated by this routine.
+
+V(au or kcal):      0.0417175       26.17816
+V(au or kcal):      0.0417175       26.17816

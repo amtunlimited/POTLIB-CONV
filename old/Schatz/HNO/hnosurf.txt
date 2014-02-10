@@ -1,0 +1,779 @@
+      subroutine prehno(nsurf)
+
+c References:
+c Guadagnini, R; Schatz, G.C.; Walch, S.P; J. Chem. Phys., 1995, 102, 774
+c Guadagnini, R; Schatz, G.C.; Walch, S.P; J. Chem. Phys., 1995, 102, 784
+
+c the subroutines
+c    prehno(nsurf)
+c    prenoh(nsurf)
+c    preonh(nsurf)
+c MUST be called ONCE at the beginning of the main program.
+
+c after that, to use this surface, the subroutine
+c    surfhno(r,v,nsurf)
+c is called, where r is the array of internuclear distances, v is the 
+c returned potential, and nsurf is the surface number
+
+c r and v are in atomic units.
+
+c nsurf=1 ->  1A' ground state surface
+c      =2 ->  3A" surface
+c      =3 ->  1A" surface
+c      =4 ->  3A' repulsive surface
+
+c Unless otherwise noted, the  r's are:
+c  r(1)=rOH
+c  r(2)=rNO
+c  r(3)=rNH
+
+      implicit real*8(a-h,o-z)
+      common/coef/c(2,40,2,19,4),wk(1600),a(4)
+      common/params/ngrd,nang,brspl,angl,aspsv
+      common /fit/rs
+
+      dimension brspl(40),angl(19),aspsv(40,19,4),ri(3)
+      dimension qrshno1(3,3),qrshno2(3,3),qrsnoh1(3,3),qrsnoh2(3,3)
+
+c parameters for the switching function for the leps potential
+      data gam/10./,gamno/3.2/,gamo/3.0/
+
+c parameters for the switching function for the quadratic wells
+      data qg/30./
+      data qrshno1/3.32,2.15,1.84,3.47,2.18,1.76,3.42,2.20,1.68/
+      data qrshno2/3.62,2.45,2.14,3.77,2.48,2.06,3.72,2.50,2.08/
+      data qrsnoh1/1.74,2.25,3.41,1.66,2.22,3.40,1.66,2.29,3.41/
+      data qrsnoh2/2.04,2.55,3.71,2.06,2.62,3.80,2.06,2.69,3.81/
+
+c files containing the hnospline parameters
+      open(1,file='spline1d.d')
+      open(2,file='spline2d.d')
+      open(3,file='spline3d.d')
+    
+      read(nsurf,*)nn
+      read(nsurf,*)ngrd,nang
+      read(nsurf,*) (brspl(i),i=1,ngrd)
+      do 911 iang=1,nang
+      read(nsurf,*) angl(iang)
+      do 912 k=1,4
+      read(nsurf,*) (aspsv(i,iang,k),i=1,ngrd)
+  912 continue
+  911 continue
+      do 21 k=1,4
+      call ibcccu(aspsv(1,1,k),brspl,ngrd,angl,nang,c(1,1,1,1,k),
+     x ngrd,wk,ier)
+   21 continue
+      return
+
+      entry surfhno(ri,v,nsurf)
+
+      if(nsurf.ne.4) go to 11
+      call tripletAprime(ri,v)
+      go to 12
+   
+c     1->  Jacobi coordinates for H + NO
+c     2->  Jacobi coordiantes for N + OH
+c     3->  Jacobi coordinates for O + NH
+
+  11  sr1 = ri(2)
+      umn = 14.00674
+      umo = 15.9994
+      umh = 1.008
+      umno = umo/(umn+umo)
+      umoh = umh/(umo + umh)
+      umnh = umh/(umn + umh)
+      rcm1 = umno * ri(2)
+      cthet1 = (sr1**2 + ri(3)**2 - ri(1)**2)/(2.*sr1*ri(3))
+      brin1 = sqrt(ri(3)**2 + rcm1**2 - 2.*ri(3)*rcm1*cthet1)
+      cgam1 = (brin1**2 + rcm1**2 - ri(3)**2)/(2.*brin1*rcm1)
+      if ((cgam1.gt.1.).or.(cgam1.lt.-1.)) cgam1 = 1.
+      ang1 = 57.29577951*acos((cgam1))
+      br1 = brin1
+      if(brin1.gt.7.) br1=7.
+      rmin=1.5
+      rmin=rmin+0.45*(1.-tanh(.4*(ang1-35.)))
+      rmin=rmin+0.35*(1.+tanh(.4*(ang1-150.)))
+      if(brin1.lt.rmin) br1=rmin
+c  call the spline function, returning the morse potential parameters
+c  a(1) => Vo
+c  a(2) => Re
+c  a(3) => beta
+c  a(4) => De
+      do 22 k=1,4
+      call ibcevl(brspl,ngrd,angl,nang,c(1,1,1,1,k),40,
+     xbr1,ang1,a(k),ier)
+   22 continue
+
+c calculate the spline potential for h+no (= pot)
+
+      if(brin1.gt.6.) then
+      pot=a(4)*(1.-exp(-a(3)*(sr1-a(2))))**2+a(1)
+      vm=0.2430966d0*(1.d0-exp(-1.45175*(ri(2)-2.17464d0)))**2
+      slope=6.
+      pot=vm+(pot-vm)*exp(-slope*(brin1-6.)**2)
+      elseif (brin1.le.6) then
+      if(a(4).lt.0.0)a(4)=0.1
+      if(brin1.lt.rmin.and.a(1).lt.0.02) a(1)=.02
+      pot=a(4)*(1.-exp(-a(3)*(sr1-a(2))))**2+a(1)
+      endif
+      if(brin1.lt.rmin) pot=pot*exp(-(brin1-rmin)/0.4)
+
+c calculate the spline poetential for n+oh (= pot2)
+
+      sr2 = ri(1)
+      rcm2 = ri(1)*umh/(umh+umo)
+      costhet2 = (ri(2)**2 + ri(1)**2 - ri(3)**2) / (2.*ri(2)*ri(1))
+      brsq2 = ri(2)**2 + rcm2**2 -2.*ri(2)*rcm2*costhet2
+      br2 = sqrt(brsq2)
+      cosgam2 = (brsq2 + rcm2**2 - ri(2)**2) /( 2.*br2*rcm2)
+      if ((cosgam2.gt.1.).or.(cosgam2.lt.-1.)) cosgam2 = 1.
+      gam2 = 57.29577951*acos(cosgam2)
+      call surfnoh(sr2,br2,gam2,pot2)
+
+c calculate the spline poetential for o+nh (= pot3)
+
+      sr3 = ri(3)
+      rcm3 = ri(3)*umh/(umh+umn)
+      costhet3 = (ri(2)**2 + ri(3)**2 - ri(1)**2) / (2.*ri(2)*ri(3))
+      brsq3 = ri(2)**2 + rcm3**2 -2.*ri(2)*rcm3*costhet3
+      br3 = sqrt(brsq3)
+      cosgam3 = (brsq3 + rcm3**2 - ri(2)**2) /( 2.*br3*rcm3)
+      if ((cosgam3.gt.1.).or.(cosgam3.lt.-1.)) cosgam3 = 1.
+      gam3 = 57.29577951*acos(cosgam3)
+      call surfonh(sr3,br3,gam3,pot3)
+
+
+      if(abs(pot).gt.1.0) pot=1.0
+
+c calculate the quadratic potential for the wells (= quadv1 and quadv2)
+c quadv1 = hno well
+c quadv2 = noh well
+
+      call quadpot(ri,quadv1,quadv2,nsurf)
+
+c qs1 and qs2 are the switching parameters for the quadratic potential.
+c When in the bottom of the wells, the quadratic potentials are used, 
+c otherwise the spline potential is used.
+
+      qs1 = 0.5*(tanh(qg*(ri(2)-qrshno1(2,nsurf)))-
+     &     tanh(qg*(ri(2)-qrshno2(2,nsurf))))*0.5*
+     &     (tanh(qg*(ri(1)-qrshno1(1,nsurf)))- 
+     &     tanh(qg*(ri(1)-qrshno2(1,nsurf))))*0.5*
+     &     (tanh(qg*(ri(3)-qrshno1(3,nsurf)))-
+     &     tanh(qg*(ri(3)-qrshno2(3,nsurf))))
+
+      qpot1=(1.-qs1)*pot + quadv1*(qs1)
+
+      qs2 = 0.5*(tanh(qg*(ri(2)-qrsnoh1(2,nsurf)))-
+     &     tanh(qg*(ri(2)-qrsnoh2(2,nsurf))))*0.5*
+     &     (tanh(qg*(ri(1)-qrsnoh1(1,nsurf)))- 
+     &     tanh(qg*(ri(1)-qrsnoh2(1,nsurf))))*0.5*
+     &     (tanh(qg*(ri(3)-qrsnoh1(3,nsurf)))-
+     &     tanh(qg*(ri(3)-qrsnoh2(3,nsurf))))
+
+      qpot2=(1.-qs2)*qpot1 + quadv2*qs2
+
+c qpot2 is the hnospline + the quadratic potentials
+
+c calculate the leps potential for h+no  (= vl)
+
+      call lsurfac(vl,ri,nsurf)
+
+c switch to the leps potential for the repulsive wall (small br's) 
+c and for large values of sr
+      pre=2.+2.0*(1+tanh(0.1*(ang1-50.)))
+      rs=1.+pre*exp(-1.*(ri(2)-3.))
+      if(ri(2).gt.3.) rs=1.+(rs-1)*exp(-2.*(ri(2)-3.)**2)
+      s=0.5*(1.+tanh(gamo*(ri(1)-1.1)))*0.5*(1.+tanh(gam*(ri(3)-1.3)))
+      s=0.5*s*(1.-tanh(4.*(ri(2)-4.)))
+      v1=qpot2*s+rs*vl*(1.-s)
+      vtemp=pot*s+rs*vl*(1.-s)
+
+
+c v1 is the hnospline + quadratic wells + leps potential
+c vtemp is the hnospline + leps
+
+      v2 = v1
+      if(nsurf.ne.2) pot2=pot2+0.087
+
+c switch to the noh and onh splines when appropriate
+
+      s2 = 0.5*(1.+tanh(4.*(br2-3.5)))*0.5*(1.-tanh(4.*(br2-7.5)))*
+     x0.5*(1.+tanh(4.*(sr2-1.0)))*0.5*(1.-tanh(4.*(sr2-3.0)))
+
+      s3 = 0.5*(1.+tanh(4.*(br3-3.5)))*0.5*(1.-tanh(4.*(br3-7.5)))*
+     x0.5*(1.+tanh(4.*(sr3-1.0)))*0.5*(1.-tanh(4.*(sr3-3.0))) 
+
+c v2 is hnospline + quadradic + leps + nohspline
+c v is the final potential including hnospline + quadradic well + leps +
+c nohspline + onhspline
+
+      v2 = v1*(1-s2) + pot2*s2
+      v = v2*(1-s3) + pot3*s3
+
+c for surface 2, if roh < rnh, switch to the onhspline then the nohspline
+
+      if(ri(1).lt.ri(3).and.(nsurf.ne.1).and.(nsurf.ne.3)) then
+      v2 = v1*(1-s3) + pot3*s3
+      v = v2*(1-s2) + pot2*s2
+      endif
+
+  12  continue
+c      write(60,*) pot*627.71
+c      write(61,*) quadv1*627.71
+c      write(62,*)quadv2*627.71
+c      write(63,*) pot2*627.71
+c      write(64,*) pot3*627.71
+c      write(65,*) rs*vl*627.71
+c      write(66,*) vtemp*627.71
+c      write(67,*) qpot1*627.71
+c      write(68,*) qpot2*627.71
+c      write(69,*) v1*627.71
+c      write(6,*) 'spline     ',pot
+c      write(6,*) 'leps       ',vl
+c      write(6,*) 'oh pot     ',pot2
+c      write(6,*) 'nh pot     ',pot3
+c      write(6,*) 'sp+lep     ',v1
+c      write(6,*) ' + oh      ',v2
+c      write(6,*) ' + nh      ',v
+c      write(6,*) 'quad       ',quadv1
+c      write(6,*) 'spline+quad',qpot2
+c      write(6,*)
+c      write(6,*)
+      return
+      end
+
+      subroutine quadpot(r,vhno,vnoh,nsurf)
+
+c subroutine to calculate the  quadratic well potentials
+c r = internuclear distances
+c vhno is the hno well potential
+c vnoh is the noh well potential
+c nsurf is the surface number
+
+       implicit double precision(a-h,o-z)
+       dimension r(3)
+       dimension a(10),a2(10)
+       dimension delnh1(3),delnh2(3),deloh1(3),deloh2(3)
+       dimension delno2(3)
+       data ifirst/1/,un/14./,uo/16./
+c del parameters line up the wells with the spline wells
+       data delnh1/0.055,0.08,0.09/,delnh2/0.07,0.19,0.19/
+       data deloh1/0.025,0.04,0.06/,deloh2/0.04,0.02,0.04/
+       data delno2/0.0,0.04,0.02/
+
+c quad*.d files contain the quadratic coefficients
+
+       open(21,file='quadhno1.d')
+       open(22,file='quadhno2.d')
+       open(23,file='quadhno3.d')
+       open(26,file='quadnoh1.d')
+       open(27,file='quadnoh2.d')
+       open(28,file='quadnoh3.d')
+
+       if(ifirst.eq.1) then
+       ifirst=0
+       read(20+nsurf,*) n,(a(i),i=1,n)
+       read(25+nsurf,*) n,(a2(i),i=1,n)
+       endif
+       y=r(2)
+       x=r(3)
+       x=r(3)+delnh1(nsurf)
+       temp=r(1)-deloh1(nsurf)
+       cz=-(temp**2-r(2)**2-r(3)**2)/(2.*r(2)*r(3))
+       if(cz.gt.1.) cz=1.
+       if(cz.lt.-1.) cz=-1.
+       z=57.29578*acos(cz)
+       vhno=a(1) +a(2)*x+a(3)*y+a(4)*z+
+     x   a(5)*x**2+a(6)*y**2+a(7)*z**2
+     x + a(8)*x*y+a(9)*x*z
+     x + a(10)*y*z+0.21725
+       if(vhno.gt.0.1)vhno=0.1
+       x=r(1)+deloh2(nsurf)
+       rtemp = r(3)-delnh2(nsurf)
+       r2temp = r(2) + delno2(nsurf)
+       y=r2temp
+       cz=-(rtemp**2-r(2)**2-r(1)**2)/(2.*r(2)*r(1))
+       if(cz.gt.1.) cz=1.
+       if(cz.lt.-1.) cz=-1.
+       z=57.29578*acos(cz)
+       vnoh=a2(1) +a2(2)*x+a2(3)*y+a2(4)*z+
+     x   a2(5)*x**2+a2(6)*y**2+a2(7)*z**2
+     x + a2(8)*x*y+a2(9)*x*z
+     x + a2(10)*y*z+0.21725
+       if(vnoh.gt.0.1)vnoh=0.1
+       return 
+       end
+
+      subroutine lsurfac(v,r,nsurf)
+      implicit double precision (a-h,o-z)
+
+c     leps potential for hno
+c     r(1)=oh
+c     r(2)=no
+c     r(3)=nh
+
+      dimension r(3),re(3),del(3),bet(3),q(3)
+      dimension a(3),de(3),dei(3)
+      data dei/0.1697818,0.2430966,0.1349067/
+      data re/1.83239,2.17464,1.95815/
+      data bet/1.21487,1.45175,1.19191/
+c original bondi parameters
+      data del/0.8,0.8,0.8/
+      do 11 i=1,3
+      de(i)=dei(i)
+      if((nsurf.ne.2).and.(i.eq.1)) de(1)=dei(1)-.087
+      ex=exp(-bet(i)*(r(i)-re(i)))
+      q(i)=0.25e0*de(i)*((3.e0+del(i))*ex**2-(2.e0+6.e0*del(i))*ex)/
+     1   (1.e0+del(i))
+      a(i)=0.25e0*de(i)*((1.e0+3.e0*del(i))*ex**2-(6.e0+2.e0*del(i))
+     1   *ex)/ (1.e0+del(i))
+   11 continue
+      u=q(1)+q(2)+q(3)-sqrt(a(1)**2+a(2)**2+a(3)**2-a(1)*a(2)-
+     1   a(2)*a(3)-a(1)*a(3))
+      v=u+de(2)
+      return
+      end
+
+      subroutine prenoh(nsurf)
+
+c  prenoh must be called once in the main program
+c  surfnoh is the spline potential for n+oh
+
+c  noh.d is the file containing the spline parameters
+
+      implicit real*8(a-h,o-z)
+      common/coefn/c(2,9,2,10),wk(1600)
+      common/paramn/ngrd,nang,brspl,angl,aspsv
+      dimension brspl(9),angl(10),aspsv(9,10)
+      data de/0.1697818/
+      data re/1.83239/
+      data bet/1.21487/
+      open(8,file='noh.d')
+      read(8,*) nn
+      read(8,*) ngrd,nang
+       do 911 iang=1,nang
+       do 912 i=1,ngrd
+      read(8,*) sr,brspl(ngrd-i+1),angl(iang),dum,aspsv(ngrd-i+1,iang)
+      aspsv(ngrd-i+1,iang)=aspsv(ngrd-i+1,iang)+0.21725+0.0070048
+  912 continue
+  911 continue
+      call ibcccu(aspsv,brspl,ngrd,angl,nang,c,
+     x ngrd,wk,ier)
+  22  continue
+      return
+
+      entry surfnoh(ssr,br,gam,v)
+c     r(1)=oh
+      call ibcevl(brspl,ngrd,angl,nang,c,9, br,gam,v,ier)
+      v=v + de*(1.-exp(-bet*(ssr-re)))**2
+      return
+      end
+
+      subroutine preonh(nsurf)
+
+c  preonh must be called once in the main program
+c  surfonh is the spline potential for o+nh
+
+c  onh.d is the file containing the spline parameters
+
+      implicit real*8(a-h,o-z)
+      common/coefo/c(2,9,2,10),wk(1600)
+      common/paramo/ngrd,nang,brspl,angl,aspsv
+      dimension brspl(9),angl(10),aspsv(9,10)
+      data de/0.1349067/
+      data re/1.95815/
+      data bet/1.19191/
+      open(33,file='onh.d')
+      read(33,*) nn
+      read(33,*) ngrd,nang
+       do 911 iang=1,nang
+       do 912 i=1,ngrd
+      read(33,*) sr,brspl(ngrd-i+1),angl(iang),
+     x dum,s1,dum2,s2,dum3,s3
+      if(nsurf.eq.1) aspsv(ngrd-i+1,iang)=s1
+      if(nsurf.eq.2) aspsv(ngrd-i+1,iang)=s2
+      if(nsurf.eq.3) aspsv(ngrd-i+1,iang)=s3
+      aspsv(ngrd-i+1,iang)=aspsv(ngrd-i+1,iang)+0.21725+0.0041299
+  912 continue
+  911 continue
+      call ibcccu(aspsv,brspl,ngrd,angl,nang,c,
+     x ngrd,wk,ier)
+  888 continue
+      return
+
+      entry surfonh(ssr,br,gam,v)
+c     r(3)=nh
+      call ibcevl(brspl,ngrd,angl,nang,c,9, br,gam,v,ier)
+      v=v + de*(1.-exp(-bet*(ssr-re)))**2
+      return
+      end
+
+      subroutine tripletAprime(ri,v)
+      implicit real*8(a-h,o-z)
+      dimension r(3),ri(3)
+
+c  subroutine to caluculate the repulsive 3A' potential
+
+c  from h+no surface created by M.Colton and G.C.Schatz
+
+
+c  NOTICE !!!!!!!!!!!!!!!!!!!!!!!!!!
+c     r(1) = rNO
+c     r(2) = rNH
+c     r(3) = rOH
+c  NOTICE !!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      data deno,beno,reno,gamma,d241,d341,b241,b341,r241,r341/6.615,
+     &1.45175,2.17464,1.0,5.442,1.088,1.05,2.15,3.550,3.49511/
+
+      r(1) = ri(2)
+      r(2) = ri(3)
+      r(3) = ri(1)
+
+      toh = 0.5d0*(1.+ dtanh(gamma*(r(2)-r(3))))
+      tnh = 0.5d0*(1.- dtanh(gamma*(r(2)-r(3))))
+      voh = d341*exp(-b341*(r(3) - r341))
+      vnh = d241*exp(-b241*(r(2) - r241))
+
+      v = deno*(1.0d0- exp(-beno*(r(1) - reno)))**2.0d0 +
+     &toh*voh+tnh*vnh
+      v = v/27.2114
+      return
+      end 
+
+c   imsl routine name   - ibcccu                                        ibcc0010
+c                                                                       ibcc0020
+c-----------------------------------------------------------------------ibcc0030
+c                                                                       ibcc0040
+c   computer            - vax/double                                    ibcc0050
+c                                                                       ibcc0060
+c   latest revision     - june 1, 1982                                  ibcc0070
+c                                                                       ibcc0080
+c   purpose             - bicubic spline two-dimensional coefficient    ibcc0090
+c                           calculator                                  ibcc0100
+c                                                                       ibcc0110
+c   usage               - call ibcccu (f,x,nx,y,ny,c,ic,wk,ier)         ibcc0120
+c                                                                       ibcc0130
+c   arguments    f      - nx by ny matrix containing the function       ibcc0140
+c                           values. (input) f(i,j) is the function valueibcc0150
+c                           at the point (x(i),y(j)) for i=1,...,nx and ibcc0160
+c                           j=1,...,ny.                                 ibcc0170
+c                x      - vector of length nx. (input) x must be        ibcc0180
+c                           ordered so that x(i) .lt. x(i+1) for        ibcc0190
+c                           i=1,...,nx-1.                               ibcc0200
+c                nx     - number of elements in x. (input) nx must be   ibcc0210
+c                           .ge. 4.                                     ibcc0220
+c                y      - vector of length ny. (input) y must be        ibcc0230
+c                           ordered so that y(j) .lt. y(j+1) for        ibcc0240
+c                           j=1,...,ny-1.                               ibcc0250
+c                ny     - number of elements in y. (input) ny must be   ibcc0260
+c                           .ge. 4.                                     ibcc0270
+c                         note - the coordinate pairs (x(i),y(j)), for  ibcc0280
+c                           i=1,...,nx and j=1,...,ny, give the points  ibcc0290
+c                           where the function values f(i,j) are        ibcc0300
+c                           defined.                                    ibcc0310
+c                c      - array of spline coefficients. (output)        ibcc0320
+c                           c is of dimension 2 by nx by 2 by ny.       ibcc0330
+c                           at the point (x(i),y(j))                    ibcc0340
+c                             c(1,i,1,j) = s                            ibcc0350
+c                             c(2,i,1,j) = ds/dx                        ibcc0360
+c                             c(1,i,2,j) = ds/dy                        ibcc0370
+c                             c(2,i,2,j) = d(ds/dx)/dy                  ibcc0380
+c                           where s(x,y) is the spline approximation.   ibcc0390
+c                           (note - c is treated internally as a        ibcc0400
+c                             2 by nx by 2*ny array because certain     ibcc0410
+c                             environments do not permit quadruply-     ibcc0420
+c                             dimensioned arrays.  in these             ibcc0430
+c                             environments the calling program may      ibcc0440
+c                             dimension c in the same manner.)          ibcc0450
+c                ic     - row dimension of matrix f and second          ibcc0460
+c                           dimension of array c exactly as             ibcc0470
+c                           specified in the dimension statement.       ibcc0480
+c                           (input). ic must be .ge. nx.                ibcc0490
+c                wk     - work vector of length                         ibcc0500
+c                           2*nx*ny+2*max(nx,ny)                        ibcc0510
+c                ier    - error parameter. (output)                     ibcc0520
+c                         terminal error                                ibcc0530
+c                           ier = 129, ic is less than nx               ibcc0540
+c                           ier = 130, nx is less than 4                ibcc0550
+c                           ier = 131, ny is less than 4                ibcc0560
+c                           ier = 132, x or y are not ordered so that   ibcc0570
+c                             x(i) .lt. x(i+1) and                      ibcc0580
+c                             y(i) .lt. y(i+1)                          ibcc0590
+c                                                                       ibcc0600
+c   precision/hardware  - single and double/h32                         ibcc0610
+c                       - single/h36,h48,h60                            ibcc0620
+c                                                                       ibcc0630
+c   reqd. imsl routines - ibcdcu,uertst,ugetio                          ibcc0640
+c                                                                       ibcc0650
+c   notation            - information on special notation and           ibcc0660
+c                           conventions is available in the manual      ibcc0670
+c                           introduction or through imsl routine uhelp  ibcc0680
+c                                                                       ibcc0690
+c   copyright           - 1982 by imsl, inc. all rights reserved.       ibcc0700
+c                                                                       ibcc0710
+c   warranty            - imsl warrants only that imsl testing has been ibcc0720
+c                           applied to this code. no other warranty,    ibcc0730
+c                           expressed or implied, is applicable.        ibcc0740
+c                                                                       ibcc0750
+c-----------------------------------------------------------------------ibcc0760
+c                                                                       ibcc0770
+      subroutine ibcccu (f,x,nx,y,ny,c,ic,wk,ier)                       ibcc0780
+      implicit real*8(a-h,o-z)
+c                                  specifications for arguments         ibcc0790
+      integer            nx,ny,ic,ier                                   ibcc0800
+      dimension          f(ic,1),x(1),y(1),c(2,ic,1),wk(1)              ibcc0810
+c                                  specifications for local variables   ibcc0820
+      integer            iwk                                            ibcc0830
+c                                  first executable statement           ibcc0840
+      ier = 129                                                         ibcc0850
+      if (ic .lt. nx) go to 9000                                        ibcc0860
+      ier = 130                                                         ibcc0870
+      if (nx .lt. 4) go to 9000                                         ibcc0880
+      ier = 131                                                         ibcc0890
+      if (ny .lt. 4) go to 9000                                         ibcc0900
+      iwk = 2*ny*nx                                                     ibcc0910
+      call ibcdcu(x,f,nx,ny,wk(iwk+1),wk,ic,ny,ier)                     ibcc0920
+      if (ier .gt. 0) go to 9000                                        ibcc0930
+      call ibcdcu(y,wk,ny,2*nx,wk(iwk+1),c,ny,2*ic,ier)                 ibcc0940
+      if (ier .eq. 0) go to 9005                                        ibcc0950
+ 9000 continue                                                          ibcc0960
+c     call uertst(ier,6hibcccu)                                         ibcc0970
+ 9005 return                                                            ibcc0980
+      end                                                               ibcc0990
+c   imsl routine name   - ibcdcu                                        ibcd0010
+c                                                                       ibcd0020
+c-----------------------------------------------------------------------ibcd0030
+c                                                                       ibcd0040
+c   computer            - vax/double                                    ibcd0050
+c                                                                       ibcd0060
+c   latest revision     - june 1, 1982                                  ibcd0070
+c                                                                       ibcd0080
+c   purpose             - nucleus called only by imsl subroutine ibcccu ibcd0090
+c                                                                       ibcd0100
+c   precision/hardware  - single and double/h32                         ibcd0110
+c                       - single/h36,h48,h60                            ibcd0120
+c                                                                       ibcd0130
+c   reqd. imsl routines - none required                                 ibcd0140
+c                                                                       ibcd0150
+c   notation            - information on special notation and           ibcd0160
+c                           conventions is available in the manual      ibcd0170
+c                           introduction or through imsl routine uhelp  ibcd0180
+c                                                                       ibcd0190
+c   copyright           - 1982 by imsl, inc. all rights reserved.       ibcd0200
+c                                                                       ibcd0210
+c   warranty            - imsl warrants only that imsl testing has been ibcd0220
+c                           applied to this code. no other warranty,    ibcd0230
+c                           expressed or implied, is applicable.        ibcd0240
+c                                                                       ibcd0250
+c-----------------------------------------------------------------------ibcd0260
+c                                                                       ibcd0270
+      subroutine ibcdcu (tau,gtau,n,m,w,vs,ic1,ic2,ier)                 ibcd0280
+      implicit real*8(a-h,o-z)
+c                                  specifications for arguments         ibcd0290
+      integer            n,m,ic1,ic2,ier                                ibcd0300
+      dimension          tau(n),gtau(ic1,1),w(n,2),vs(ic2,2,1)          ibcd0310
+c                                  specifications for local variables   ibcd0320
+      integer            i,jj,jm1,jp1,j,k,lim,ll,lp1,nm1                ibcd0330
+      real*8            aa,bb,c1,c2,cc,dd,dtau,g,h,ratio,u,xilim       ibcd0340
+c                                  first executable statement           ibcd0350
+      lim = n-3                                                         ibcd0360
+      nm1 = n-1                                                         ibcd0370
+      lp1 = lim+1                                                       ibcd0380
+      ier = 132                                                         ibcd0390
+      w(2,1) = tau(3)-tau(1)                                            ibcd0400
+      if (w(2,1).le.0.0d0) return                                       ibcd0410
+      do 5 k=1,m                                                        ibcd0420
+         vs(k,1,1) = gtau(1,k)                                          ibcd0430
+    5 continue                                                          ibcd0440
+      xilim = tau(1)                                                    ibcd0450
+      if (lim.lt.2) go to 20                                            ibcd0460
+      xilim = tau(n-2)                                                  ibcd0470
+      do 15 i=2,lim                                                     ibcd0480
+         j = i+1                                                        ibcd0490
+         w(j,1) = tau(i+2)-tau(j)                                       ibcd0500
+         if (w(j,1).le.0.0d0) return                                    ibcd0510
+         do 10 k=1,m                                                    ibcd0520
+   10    vs(k,1,i) = gtau(j,k)                                          ibcd0530
+   15 continue                                                          ibcd0540
+   20 w(lp1,1) = tau(n)-xilim                                           ibcd0550
+      if (w(lp1,1).le.0.0d0) return                                     ibcd0560
+      do 25 k=1,m                                                       ibcd0570
+   25 vs(k,1,lp1) = gtau(n,k)                                           ibcd0580
+      do 35 i=2,lp1                                                     ibcd0590
+         do 30 k=1,m                                                    ibcd0600
+   30    vs(k,2,i) = (vs(k,1,i)-vs(k,1,i-1))/w(i,1)                     ibcd0610
+   35 continue                                                          ibcd0620
+      dtau = tau(2)-tau(1)                                              ibcd0630
+      ratio = dtau/w(2,1)                                               ibcd0640
+      w(1,2) = (ratio-1.d0)**2                                          ibcd0650
+      w(1,1) = ratio*(ratio-1.d0)                                       ibcd0660
+      c1 = ratio*(2.d0*ratio-3.d0)                                      ibcd0670
+      do 40 k=1,m                                                       ibcd0680
+   40 vs(k,2,1) = (gtau(2,k)-gtau(1,k))/dtau+vs(k,2,2)*c1               ibcd0690
+      if (lim.lt.2) go to 55                                            ibcd0700
+      do 50 i=2,lim                                                     ibcd0710
+         j = i+1                                                        ibcd0720
+         jj = i-1                                                       ibcd0730
+         g = -w(j,1)/w(jj,2)                                            ibcd0740
+         c1 = 3.d0*w(i,1)                                               ibcd0750
+         c2 = 3.d0*w(j,1)                                               ibcd0760
+         do 45 k=1,m                                                    ibcd0770
+   45    vs(k,2,i) = g*vs(k,2,jj)+c1*vs(k,2,j)+c2*vs(k,2,i)             ibcd0780
+         w(i,2) = g*w(jj,1)+2.d0*(w(i,1)+w(j,1))                        ibcd0790
+   50 continue                                                          ibcd0800
+   55 dtau = tau(n-1)-xilim                                             ibcd0810
+      ratio = dtau/w(lp1,1)                                             ibcd0820
+      g = -(ratio-1.d0)**2/w(lim,2)                                     ibcd0830
+      w(lp1,2) = ratio*(ratio-1.d0)                                     ibcd0840
+      c1 = ratio*(2.d0*ratio-3.d0)                                      ibcd0850
+      do 60 k=1,m                                                       ibcd0860
+   60 vs(k,2,lp1) = (gtau(n-1,k)-vs(k,1,lim))/dtau+vs(k,2,lp1)*c1       ibcd0870
+      w(lp1,2) = g*w(lim,1)+w(lp1,2)                                    ibcd0880
+      do 65 k=1,m                                                       ibcd0890
+   65 vs(k,2,lp1) = (g*vs(k,2,lim)+vs(k,2,lp1))/w(lp1,2)                ibcd0900
+      j = lim                                                           ibcd0910
+   70 do 75 k=1,m                                                       ibcd0920
+   75 vs(k,2,j) = (vs(k,2,j)-w(j,1)*vs(k,2,j+1))/w(j,2)                 ibcd0930
+      j = j-1                                                           ibcd0940
+      if (j.gt.0) go to 70                                              ibcd0950
+      do 95 k=1,m                                                       ibcd0960
+         do 85 jj=1,n                                                   ibcd0970
+            j = n+1-jj                                                  ibcd0980
+            jm1 = j-1                                                   ibcd0990
+            if (j.eq.n) jm1 = j-2                                       ibcd1000
+            if (j.eq.1) jm1 = j                                         ibcd1010
+            do 80 ll=1,2                                                ibcd1020
+               vs(k,ll,j) = vs(k,ll,jm1)                                ibcd1030
+   80       continue                                                    ibcd1040
+   85    continue                                                       ibcd1050
+         do 90 j=2,nm1,lim                                              ibcd1060
+            jm1 = j-1                                                   ibcd1070
+            jp1 = j+1                                                   ibcd1080
+            if (jm1.eq.2) jm1 = 1                                       ibcd1090
+            if (jp1.eq.nm1) jp1 = n                                     ibcd1100
+            h = tau(jp1)-tau(jm1)                                       ibcd1110
+            u = tau(j)-tau(jm1)                                         ibcd1120
+            aa = vs(k,1,jm1)                                            ibcd1130
+            bb = vs(k,2,jm1)                                            ibcd1140
+            cc = (3.d0*(vs(k,1,jp1)-vs(k,1,jm1))/h-(vs(k,2,jp1)+        ibcd1150
+     *      2.d0*vs(k,2,jm1)))/h                                        ibcd1160
+            dd = (2.d0*(vs(k,1,jm1)-vs(k,1,jp1))/h+(vs(k,2,jp1)+        ibcd1170
+     *      vs(k,2,jm1)))/h**2                                          ibcd1180
+            vs(k,1,j) = aa+u*(bb+u*(cc+dd*u))                           ibcd1190
+            vs(k,2,j) = bb+u*(2.d0*cc+3.d0*dd*u)                        ibcd1200
+   90    continue                                                       ibcd1210
+   95 continue                                                          ibcd1220
+      ier = 0                                                           ibcd1230
+      return                                                            ibcd1240
+      end                                                               ibcd1250
+c   imsl routine name   - ibcevl                                        ibel0010
+c                                                                       ibel0020
+c-----------------------------------------------------------------------ibel0030
+c                                                                       ibel0040
+c   computer            - vax/double                                    ibel0050
+c                                                                       ibel0060
+c   latest revision     - june 1, 1982                                  ibel0070
+c                                                                       ibel0080
+c   purpose             - evaluation of a bicubic spline                ibel0090
+c                                                                       ibel0100
+c   usage               - call ibcevl (x,nx,y,ny,c,ic,xl,yl,fl,ier)     ibel0110
+c                                                                       ibel0120
+c   arguments    x      - vector of length nx. (input) x must be        ibel0130
+c                           ordered so that x(i) .lt. x(i+1) for        ibel0140
+c                           i=1,...,nx-1.                               ibel0150
+c                nx     - number of elements in x. (input) nx must be   ibel0160
+c                           .ge. 2.                                     ibel0170
+c                y      - vector of length ny. (input) y must be        ibel0180
+c                           ordered so that y(j) .lt. y(j+1) for        ibel0190
+c                           j=1,...,ny-1.                               ibel0200
+c                ny     - number of elements in y. (input) ny must be   ibel0210
+c                           .ge. 2.                                     ibel0220
+c                         note - the coordinate pairs (x(i),y(j)), for  ibel0230
+c                           i=1,...,nx and j=1,...,ny, give the points  ibel0240
+c                           where the function values are defined.      ibel0250
+c                c      - array of spline coefficients. (input)         ibel0260
+c                           c is of dimension 2 by nx by 2 by ny.       ibel0270
+c                           the spline coefficients can be computed by  ibel0280
+c                           imsl subroutine ibcccu.                     ibel0290
+c                           (note - c is treated internally as a        ibel0300
+c                            2 by nx by 2*ny array because certain      ibel0310
+c                            environments do not permit quadruply-      ibel0320
+c                            dimensioned arrays.  in these              ibel0330
+c                            environments the calling program may       ibel0340
+c                            dimension c in the same manner.)           ibel0350
+c                ic     - second dimension of array c exactly as        ibel0360
+c                           specified in the dimension statement        ibel0370
+c                           (input).  ic must be .ge. nx.               ibel0380
+c                xl,yl  - (xl,yl) is the point at which the spline is   ibel0390
+c                           to be evaluated. (input)                    ibel0400
+c                fl     - the value of the spline approximation at      ibel0410
+c                           (xl,yl). (output)                           ibel0420
+c                ier    - error parameter. (output)                     ibel0430
+c                         warning error                                 ibel0440
+c                           ier = 33, xl is less than x(1).             ibel0450
+c                           ier = 34, yl is less than y(1).             ibel0460
+c                           ier = 35, xl is greater than x(nx).         ibel0470
+c                           ier = 36, yl is greater than y(ny).         ibel0480
+c                                                                       ibel0490
+c   precision/hardware  - single and double/h32                         ibel0500
+c                       - single/h36,h48,h60                            ibel0510
+c                                                                       ibel0520
+c   reqd. imsl routines - uertst,ugetio                                 ibel0530
+c                                                                       ibel0540
+c   notation            - information on special notation and           ibel0550
+c                           conventions is available in the manual      ibel0560
+c                           introduction or through imsl routine uhelp  ibel0570
+c                                                                       ibel0580
+c   copyright           - 1982 by imsl, inc. all rights reserved.       ibel0590
+c                                                                       ibel0600
+c   warranty            - imsl warrants only that imsl testing has been ibel0610
+c                           applied to this code. no other warranty,    ibel0620
+c                           expressed or implied, is applicable.        ibel0630
+c                                                                       ibel0640
+c-----------------------------------------------------------------------ibel0650
+c                                                                       ibel0660
+      subroutine ibcevl (x,nx,y,ny,c,ic,xl,yl,fl,ier)                   ibel0670
+      implicit real*8(a-h,o-z)
+c                                  specifications for arguments         ibel0680
+      integer            nx,ny,ic,ier                                   ibel0690
+      real*8             x(1),y(1),c(2,ic,1),xl,yl,fl                   ibel0700
+c                                  specifications for local variables   ibel0710
+      integer            i,j,lx,lypl,ly,l                               ibel0720
+      real*8               hx,hy,suy(2),su(2),u,v,spln,s0,sh,sp0,sph,h,d  ibel0730
+      spln(s0,sh,sp0,sph,h,d) = s0+d*(h*sp0+d*(3.d0*(sh-s0)-            ibel0740
+     * (sph+2.d0*sp0)*h+d*(2.d0*(s0-sh)+(sph+sp0)*h)))                  ibel0750
+c                                  first executable statement           ibel0760
+      ier = 0                                                           ibel0770
+      if (xl.lt.x(1)) ier = 33                                          ibel0780
+      do 5 i=2,nx                                                       ibel0790
+         lx = i-1                                                       ibel0800
+         if (xl.le.x(i)) go to 10                                       ibel0810
+    5 continue                                                          ibel0820
+      ier = 35                                                          ibel0830
+   10 if (yl.lt.y(1)) ier = 34                                          ibel0840
+      do 15 j=2,ny                                                      ibel0850
+         ly = j-1                                                       ibel0860
+         if (yl.le.y(j)) go to 20                                       ibel0870
+   15 continue                                                          ibel0880
+      ier = 36                                                          ibel0890
+   20 i = lx+1                                                          ibel0900
+      hx = x(i)-x(lx)                                                   ibel0910
+      hy = y(ly+1)-y(ly)                                                ibel0920
+      u = (xl-x(lx))/hx                                                 ibel0930
+      v = (yl-y(ly))/hy                                                 ibel0940
+      do 25 l=1,2                                                       ibel0950
+         lypl = ly-1+l                                                  ibel0960
+         j = 2*lypl-1                                                   ibel0970
+         su(l) = spln(c(1,lx,j),c(1,i,j),c(2,lx,j),c(2,i,j),hx,u)       ibel0980
+         j = 2*lypl                                                     ibel0990
+         suy(l) = spln(c(1,lx,j),c(1,i,j),c(2,lx,j),c(2,i,j),hx,u)      ibel1000
+   25 continue                                                          ibel1010
+      fl = spln(su(1),su(2),suy(1),suy(2),hy,v)                         ibel1020
+c     if (ier.gt.0) call uertst(ier,6hibcevl)                           ibel1030
+      return                                                            ibel1040
+      end                                                               ibel1050
+
+
+

@@ -1,0 +1,421 @@
+ # Script to modify potlib routines
+ #
+ echo " "
+ date
+ echo " "
+ echo " "
+ echo "  **** doing ./ALC/chc.f             ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ALC/chc.f             > /thry/potlib/potlib-2006/new/ALC/chc.f
+ echo "  **** thru ./ALC/chc.f             ****  "
+ echo " "
+ echo "  **** doing ./ALC/chc5m0.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ALC/chc5m0.f          > /thry/potlib/potlib-2006/new/ALC/chc5m0.f
+ echo "  **** thru ./ALC/chc5m0.f          ****  "
+ echo " "
+ echo "  **** doing ./ALC/chc6m0.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ALC/chc6m0.f          > /thry/potlib/potlib-2006/new/ALC/chc6m0.f
+ echo "  **** thru ./ALC/chc6m0.f          ****  "
+ echo " "
+ echo "  **** doing ./ALC/chc7m0.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ALC/chc7m0.f          > /thry/potlib/potlib-2006/new/ALC/chc7m0.f
+ echo "  **** thru ./ALC/chc7m0.f          ****  "
+ echo " "
+ echo "  **** doing ./ALC/chc7m1.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ALC/chc7m1.f          > /thry/potlib/potlib-2006/new/ALC/chc7m1.f
+ echo "  **** thru ./ALC/chc7m1.f          ****  "
+ echo " "
+ echo "  **** doing ./ALC/chc7m10.f         ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ALC/chc7m10.f         > /thry/potlib/potlib-2006/new/ALC/chc7m10.f
+ echo "  **** thru ./ALC/chc7m10.f         ****  "
+ echo " "
+ echo "  **** doing ./ALC/chc7m4.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ALC/chc7m4.f          > /thry/potlib/potlib-2006/new/ALC/chc7m4.f
+ echo "  **** thru ./ALC/chc7m4.f          ****  "
+ echo " "
+ echo "  **** doing ./ALC/chc7m5.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ALC/chc7m5.f          > /thry/potlib/potlib-2006/new/ALC/chc7m5.f
+ echo "  **** thru ./ALC/chc7m5.f          ****  "
+ echo " "
+ echo "  **** doing ./ALC/chc7m7.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ALC/chc7m7.f          > /thry/potlib/potlib-2006/new/ALC/chc7m7.f
+ echo "  **** thru ./ALC/chc7m7.f          ****  "
+ echo " "
+ echo "  **** doing ./ALC/chc7p2.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ALC/chc7p2.f          > /thry/potlib/potlib-2006/new/ALC/chc7p2.f
+ echo "  **** thru ./ALC/chc7p2.f          ****  "
+ echo " "
+ echo "  **** doing ./ALC/chc7p3.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ALC/chc7p3.f          > /thry/potlib/potlib-2006/new/ALC/chc7p3.f
+ echo "  **** thru ./ALC/chc7p3.f          ****  "
+ echo " "
+ echo "  **** doing ./ALC/chc7p5.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ALC/chc7p5.f          > /thry/potlib/potlib-2006/new/ALC/chc7p5.f
+ echo "  **** thru ./ALC/chc7p5.f          ****  "
+ echo " "
+ echo "  **** doing ./BrH2/brh2dim3c.f      ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./BrH2/brh2dim3c.f      > /thry/potlib/potlib-2006/new/BrH2/brh2dim3c.f
+ echo "  **** thru ./BrH2/brh2dim3c.f      ****  "
+ echo " "
+ echo "  **** doing ./BrH2/brh2leps.f       ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./BrH2/brh2leps.f       > /thry/potlib/potlib-2006/new/BrH2/brh2leps.f
+ echo "  **** thru ./BrH2/brh2leps.f       ****  "
+ echo " "
+ echo "  **** doing ./BrH2/brh2sec.f        ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./BrH2/brh2sec.f        > /thry/potlib/potlib-2006/new/BrH2/brh2sec.f
+ echo "  **** thru ./BrH2/brh2sec.f        ****  "
+ echo " "
+ echo "  **** doing ./BrHCl/brhcleleps2.f   ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./BrHCl/brhcleleps2.f   > /thry/potlib/potlib-2006/new/BrHCl/brhcleleps2.f
+ echo "  **** thru ./BrHCl/brhcleleps2.f   ****  "
+ echo " "
+ echo "  **** doing ./BrHCl/brhcleleps3.f   ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./BrHCl/brhcleleps3.f   > /thry/potlib/potlib-2006/new/BrHCl/brhcleleps3.f
+ echo "  **** thru ./BrHCl/brhcleleps3.f   ****  "
+ echo " "
+ echo "  **** doing ./BrHCl/brhcllepsk.f    ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./BrHCl/brhcllepsk.f    > /thry/potlib/potlib-2006/new/BrHCl/brhcllepsk.f
+ echo "  **** thru ./BrHCl/brhcllepsk.f    ****  "
+ echo " "
+ echo "  **** doing ./BrHCl/clhbrblm.f      ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./BrHCl/clhbrblm.f      > /thry/potlib/potlib-2006/new/BrHCl/clhbrblm.f
+ echo "  **** thru ./BrHCl/clhbrblm.f      ****  "
+ echo " "
+ echo "  **** doing ./BrHCl/clhbreleps.f    ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./BrHCl/clhbreleps.f    > /thry/potlib/potlib-2006/new/BrHCl/clhbreleps.f
+ echo "  **** thru ./BrHCl/clhbreleps.f    ****  "
+ echo " "
+ echo "  **** doing ./BrHCl/clhbrlepsk.f    ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./BrHCl/clhbrlepsk.f    > /thry/potlib/potlib-2006/new/BrHCl/clhbrlepsk.f
+ echo "  **** thru ./BrHCl/clhbrlepsk.f    ****  "
+ echo " "
+ echo "  **** doing ./Cl2H/clhclbcmr.f      ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./Cl2H/clhclbcmr.f      > /thry/potlib/potlib-2006/new/Cl2H/clhclbcmr.f
+ echo "  **** thru ./Cl2H/clhclbcmr.f      ****  "
+ echo " "
+ echo "  **** doing ./Cl2H/clhclpk2.f       ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./Cl2H/clhclpk2.f       > /thry/potlib/potlib-2006/new/Cl2H/clhclpk2.f
+ echo "  **** thru ./Cl2H/clhclpk2.f       ****  "
+ echo " "
+ echo "  **** doing ./Cl2H/clhclpk3.f       ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./Cl2H/clhclpk3.f       > /thry/potlib/potlib-2006/new/Cl2H/clhclpk3.f
+ echo "  **** thru ./Cl2H/clhclpk3.f       ****  "
+ echo " "
+ echo "  **** doing ./Cl2H/hcl2lep.f        ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./Cl2H/hcl2lep.f        > /thry/potlib/potlib-2006/new/Cl2H/hcl2lep.f
+ echo "  **** thru ./Cl2H/hcl2lep.f        ****  "
+ echo " "
+ echo "  **** doing ./ClH2/clh2alab.f       ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ClH2/clh2alab.f       > /thry/potlib/potlib-2006/new/ClH2/clh2alab.f
+ echo "  **** thru ./ClH2/clh2alab.f       ****  "
+ echo " "
+ echo "  **** doing ./ClH2/clh2dim3c.f      ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ClH2/clh2dim3c.f      > /thry/potlib/potlib-2006/new/ClH2/clh2dim3c.f
+ echo "  **** thru ./ClH2/clh2dim3c.f      ****  "
+ echo " "
+ echo "  **** doing ./ClH2/clh2g3.f         ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ClH2/clh2g3.f         > /thry/potlib/potlib-2006/new/ClH2/clh2g3.f
+ echo "  **** thru ./ClH2/clh2g3.f         ****  "
+ echo " "
+ echo "  **** doing ./ClH2/clh2gq.f         ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ClH2/clh2gq.f         > /thry/potlib/potlib-2006/new/ClH2/clh2gq.f
+ echo "  **** thru ./ClH2/clh2gq.f         ****  "
+ echo " "
+ echo "  **** doing ./ClH2/clh2gqq.f        ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ClH2/clh2gqq.f        > /thry/potlib/potlib-2006/new/ClH2/clh2gqq.f
+ echo "  **** thru ./ClH2/clh2gqq.f        ****  "
+ echo " "
+ echo "  **** doing ./ClH2/clh2gsi.f        ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ClH2/clh2gsi.f        > /thry/potlib/potlib-2006/new/ClH2/clh2gsi.f
+ echo "  **** thru ./ClH2/clh2gsi.f        ****  "
+ echo " "
+ echo "  **** doing ./ClH2/clh2gsii.f       ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ClH2/clh2gsii.f       > /thry/potlib/potlib-2006/new/ClH2/clh2gsii.f
+ echo "  **** thru ./ClH2/clh2gsii.f       ****  "
+ echo " "
+ echo "  **** doing ./ClH2/clh2s1.f         ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ClH2/clh2s1.f         > /thry/potlib/potlib-2006/new/ClH2/clh2s1.f
+ echo "  **** thru ./ClH2/clh2s1.f         ****  "
+ echo " "
+ echo "  **** doing ./ClH2/clh2s2.f         ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ClH2/clh2s2.f         > /thry/potlib/potlib-2006/new/ClH2/clh2s2.f
+ echo "  **** thru ./ClH2/clh2s2.f         ****  "
+ echo " "
+ echo "  **** doing ./ClH2/clh2s3.f         ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ClH2/clh2s3.f         > /thry/potlib/potlib-2006/new/ClH2/clh2s3.f
+ echo "  **** thru ./ClH2/clh2s3.f         ****  "
+ echo " "
+ echo "  **** doing ./ClH2/clh2spkgsw.f     ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./ClH2/clh2spkgsw.f     > /thry/potlib/potlib-2006/new/ClH2/clh2spkgsw.f
+ echo "  **** thru ./ClH2/clh2spkgsw.f     ****  "
+ echo " "
+ echo "  **** doing ./F2H/hf2eleps.f        ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./F2H/hf2eleps.f        > /thry/potlib/potlib-2006/new/F2H/hf2eleps.f
+ echo "  **** thru ./F2H/hf2eleps.f        ****  "
+ echo " "
+ echo "  **** doing ./F2H/hf2jotii.f        ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./F2H/hf2jotii.f        > /thry/potlib/potlib-2006/new/F2H/hf2jotii.f
+ echo "  **** thru ./F2H/hf2jotii.f        ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh25sec.f         ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh25sec.f         > /thry/potlib/potlib-2006/new/FH2/fh25sec.f
+ echo "  **** thru ./FH2/fh25sec.f         ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh25seccog1.f     ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh25seccog1.f     > /thry/potlib/potlib-2006/new/FH2/fh25seccog1.f
+ echo "  **** thru ./FH2/fh25seccog1.f     ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh25seccog2.f     ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh25seccog2.f     > /thry/potlib/potlib-2006/new/FH2/fh25seccog2.f
+ echo "  **** thru ./FH2/fh25seccog2.f     ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh25seccog3.f     ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh25seccog3.f     > /thry/potlib/potlib-2006/new/FH2/fh25seccog3.f
+ echo "  **** thru ./FH2/fh25seccog3.f     ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh25secgm1.f      ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh25secgm1.f      > /thry/potlib/potlib-2006/new/FH2/fh25secgm1.f
+ echo "  **** thru ./FH2/fh25secgm1.f      ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh25secgm2.f      ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh25secgm2.f      > /thry/potlib/potlib-2006/new/FH2/fh25secgm2.f
+ echo "  **** thru ./FH2/fh25secgm2.f      ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh25secgm3.f      ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh25secgm3.f      > /thry/potlib/potlib-2006/new/FH2/fh25secgm3.f
+ echo "  **** thru ./FH2/fh25secgm3.f      ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh25secs1.f       ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh25secs1.f       > /thry/potlib/potlib-2006/new/FH2/fh25secs1.f
+ echo "  **** thru ./FH2/fh25secs1.f       ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh25secs2.f       ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh25secs2.f       > /thry/potlib/potlib-2006/new/FH2/fh25secs2.f
+ echo "  **** thru ./FH2/fh25secs2.f       ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh25secs3.f       ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh25secs3.f       > /thry/potlib/potlib-2006/new/FH2/fh25secs3.f
+ echo "  **** thru ./FH2/fh25secs3.f       ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh25secw.f        ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh25secw.f        > /thry/potlib/potlib-2006/new/FH2/fh25secw.f
+ echo "  **** thru ./FH2/fh25secw.f        ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh26sec.f         ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh26sec.f         > /thry/potlib/potlib-2006/new/FH2/fh26sec.f
+ echo "  **** thru ./FH2/fh26sec.f         ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh2m5.f           ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh2m5.f           > /thry/potlib/potlib-2006/new/FH2/fh2m5.f
+ echo "  **** thru ./FH2/fh2m5.f           ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh2m5sk.f         ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh2m5sk.f         > /thry/potlib/potlib-2006/new/FH2/fh2m5sk.f
+ echo "  **** thru ./FH2/fh2m5sk.f         ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh2n1.f           ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh2n1.f           > /thry/potlib/potlib-2006/new/FH2/fh2n1.f
+ echo "  **** thru ./FH2/fh2n1.f           ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh2n2.f           ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh2n2.f           > /thry/potlib/potlib-2006/new/FH2/fh2n2.f
+ echo "  **** thru ./FH2/fh2n2.f           ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh2n2a.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh2n2a.f          > /thry/potlib/potlib-2006/new/FH2/fh2n2a.f
+ echo "  **** thru ./FH2/fh2n2a.f          ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh2n3.f           ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh2n3.f           > /thry/potlib/potlib-2006/new/FH2/fh2n3.f
+ echo "  **** thru ./FH2/fh2n3.f           ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh2n4.f           ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh2n4.f           > /thry/potlib/potlib-2006/new/FH2/fh2n4.f
+ echo "  **** thru ./FH2/fh2n4.f           ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh2n5.f           ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh2n5.f           > /thry/potlib/potlib-2006/new/FH2/fh2n5.f
+ echo "  **** thru ./FH2/fh2n5.f           ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh2n5a.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh2n5a.f          > /thry/potlib/potlib-2006/new/FH2/fh2n5a.f
+ echo "  **** thru ./FH2/fh2n5a.f          ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh2n5b.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh2n5b.f          > /thry/potlib/potlib-2006/new/FH2/fh2n5b.f
+ echo "  **** thru ./FH2/fh2n5b.f          ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh2n5z.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh2n5z.f          > /thry/potlib/potlib-2006/new/FH2/fh2n5z.f
+ echo "  **** thru ./FH2/fh2n5z.f          ****  "
+ echo " "
+ echo "  **** doing ./FH2/fh2sk.f           ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./FH2/fh2sk.f           > /thry/potlib/potlib-2006/new/FH2/fh2sk.f
+ echo "  **** thru ./FH2/fh2sk.f           ****  "
+ echo " "
+ echo "  **** doing ./H3/h3dmbe.f           ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./H3/h3dmbe.f           > /thry/potlib/potlib-2006/new/H3/h3dmbe.f
+ echo "  **** thru ./H3/h3dmbe.f           ****  "
+ echo " "
+ echo "  **** doing ./H3/h3pk2.f            ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./H3/h3pk2.f            > /thry/potlib/potlib-2006/new/H3/h3pk2.f
+ echo "  **** thru ./H3/h3pk2.f            ****  "
+ echo " "
+ echo "  **** doing ./H3/h3tk.f             ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./H3/h3tk.f             > /thry/potlib/potlib-2006/new/H3/h3tk.f
+ echo "  **** thru ./H3/h3tk.f             ****  "
+ echo " "
+ echo "  **** doing ./I2H/hi2kka.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./I2H/hi2kka.f          > /thry/potlib/potlib-2006/new/I2H/hi2kka.f
+ echo "  **** thru ./I2H/hi2kka.f          ****  "
+ echo " "
+ echo "  **** doing ./I2H/ihielepsa.f       ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./I2H/ihielepsa.f       > /thry/potlib/potlib-2006/new/I2H/ihielepsa.f
+ echo "  **** thru ./I2H/ihielepsa.f       ****  "
+ echo " "
+ echo "  **** doing ./I2H/ihielepsb.f       ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./I2H/ihielepsb.f       > /thry/potlib/potlib-2006/new/I2H/ihielepsb.f
+ echo "  **** thru ./I2H/ihielepsb.f       ****  "
+ echo " "
+ echo "  **** doing ./IH2/ih2eleps.f        ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./IH2/ih2eleps.f        > /thry/potlib/potlib-2006/new/IH2/ih2eleps.f
+ echo "  **** thru ./IH2/ih2eleps.f        ****  "
+ echo " "
+ echo "  **** doing ./IH2/ih2elepsa.f       ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./IH2/ih2elepsa.f       > /thry/potlib/potlib-2006/new/IH2/ih2elepsa.f
+ echo "  **** thru ./IH2/ih2elepsa.f       ****  "
+ echo " "
+ echo "  **** doing ./IH2/ih2raff.f         ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./IH2/ih2raff.f         > /thry/potlib/potlib-2006/new/IH2/ih2raff.f
+ echo "  **** thru ./IH2/ih2raff.f         ****  "
+ echo " "
+ echo "  **** doing ./IH2/ih2rmc1d.f        ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./IH2/ih2rmc1d.f        > /thry/potlib/potlib-2006/new/IH2/ih2rmc1d.f
+ echo "  **** thru ./IH2/ih2rmc1d.f        ****  "
+ echo " "
+ echo "  **** doing ./IH2/ih2rmc3d.f        ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./IH2/ih2rmc3d.f        > /thry/potlib/potlib-2006/new/IH2/ih2rmc3d.f
+ echo "  **** thru ./IH2/ih2rmc3d.f        ****  "
+ echo " "
+ echo "  **** doing ./O2H/ho2mb.f           ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./O2H/ho2mb.f           > /thry/potlib/potlib-2006/new/O2H/ho2mb.f
+ echo "  **** thru ./O2H/ho2mb.f           ****  "
+ echo " "
+ echo "  **** doing ./OH2/oh2dim.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./OH2/oh2dim.f          > /thry/potlib/potlib-2006/new/OH2/oh2dim.f
+ echo "  **** thru ./OH2/oh2dim.f          ****  "
+ echo " "
+ echo "  **** doing ./OH2/oh2jw.f           ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./OH2/oh2jw.f           > /thry/potlib/potlib-2006/new/OH2/oh2jw.f
+ echo "  **** thru ./OH2/oh2jw.f           ****  "
+ echo " "
+ echo "  **** doing ./OH2/oh2jws.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./OH2/oh2jws.f          > /thry/potlib/potlib-2006/new/OH2/oh2jws.f
+ echo "  **** thru ./OH2/oh2jws.f          ****  "
+ echo " "
+ echo "  **** doing ./OH2/oh2m2adp.f        ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./OH2/oh2m2adp.f        > /thry/potlib/potlib-2006/new/OH2/oh2m2adp.f
+ echo "  **** thru ./OH2/oh2m2adp.f        ****  "
+ echo " "
+ echo "  **** doing ./OH2/oh2m2ap.f         ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./OH2/oh2m2ap.f         > /thry/potlib/potlib-2006/new/OH2/oh2m2ap.f
+ echo "  **** thru ./OH2/oh2m2ap.f         ****  "
+ echo " "
+ echo "  **** doing ./OH2/oh2m3a.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./OH2/oh2m3a.f          > /thry/potlib/potlib-2006/new/OH2/oh2m3a.f
+ echo "  **** thru ./OH2/oh2m3a.f          ****  "
+ echo " "
+ echo "  **** doing ./OH2/oh2m3n.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./OH2/oh2m3n.f          > /thry/potlib/potlib-2006/new/OH2/oh2m3n.f
+ echo "  **** thru ./OH2/oh2m3n.f          ****  "
+ echo " "
+ echo "  **** doing ./OH2/oh2pol.f          ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./OH2/oh2pol.f          > /thry/potlib/potlib-2006/new/OH2/oh2pol.f
+ echo "  **** thru ./OH2/oh2pol.f          ****  "
+ echo " "
+ echo "  **** doing ./OH2/oh2sl.f           ****  "
+  cd /thry/potlib/potlib-2006/now/
+ /thry/potlib/potlib-2006/modnow/global.x <./OH2/oh2sl.f           > /thry/potlib/potlib-2006/new/OH2/oh2sl.f
+ echo "  **** thru ./OH2/oh2sl.f           ****  "
+ echo " "

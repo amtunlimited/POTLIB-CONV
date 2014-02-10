@@ -1,0 +1,61 @@
+      implicit double precision(a-h,o-z)
+
+c  This is a test program for the HNO
+c  potential surfaces.
+
+c  It reads in the surface number and
+c  internuclear distances and returns 
+c  the potential energy.     
+
+c  Input:
+
+c  nusrf =1  1A' surface
+c  nusrf =2  3A" surface
+c  nusrf =3  1A" surface
+c  nusrf =4  1A' repulsive surface
+
+c  r(1)=rOH
+c  r(2)=rNO
+c  r(3)=rNH
+c  input r values are in bohrs
+
+c  Output is in kcal/mol
+
+c  Example data:
+c  input of 
+c   1
+c   1
+c   3.47
+c   2.30
+c   1.99
+c  gives output
+c   -50kcal/mol
+
+      dimension r(3)
+
+      read(5,*) nsurf
+      if(nsurf.eq.4)go to 43
+
+c  Note these "pre" subroutines must be called once in the 
+c  beginning of all programs using this potential
+      call prehno(nsurf)
+      call prenoh(nsurf)
+      call preonh(nsurf)
+
+ 43   read(5,*) np
+      do i=1,np
+      read(5,*) r(1),r(2),r(3)
+
+c  This subroutine returns the energy for the given surface
+c  and geometry
+      call surfhno(r,ve,nsurf)
+
+      write(6,10)r,ve*626.51
+ 10   format("rOH",3x,f8.4,/,"rNO",3x,f8.4,/,"rOH",3x,f8.4,
+     &/,"V",5x,f8.4)
+      enddo
+
+      end
+
+
+

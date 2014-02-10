@@ -1,0 +1,1155 @@
+C This is a set of subroutines used in the calculation of the 
+C potential.
+c 11/98: This version has the scaled potential. GCS
+C
+c
+C LEPS POTENTIAL --- used for clhcl bond angle less than 90 degrees.
+C
+      subroutine asurfac(v,r,iuse)
+      implicit double precision (a-h,o-z)
+C
+c     leps potential for cl+hcl, using the same de and del as in
+c     bondi,connor,manz,romelt
+c     mol phys 50,467(1983) for iuse=1, ie sigma,
+C     but for iuse=2, ie pi different Sato parameters.
+C
+      dimension r(3),re(3),del(3,2),bet(3),q(3)
+      dimension a(3),de(3)
+C
+C The original BCMR surface has the following parameters:
+C
+      data de/0.1697216,0.0924230,0.1697216/
+      data re/2.409447,3.756848,2.409447/
+      data bet/0.988484,1.059392,0.988484/
+C First three are for the sigma leps, the second three are for
+C the pi leps.  
+      data del/0.115,0.115,0.115,-0.115,-0.115,-0.115/
+C
+      DO 11 i=1,3
+      ex=exp(-bet(i)*(r(i)-re(i)))
+      q(i)=0.25d0*de(i)*((3.d0+del(i,iuse))*ex**2
+     > -(2.d0+6.d0*del(i,iuse))*ex)/
+     >   (1.d0+del(i,iuse))
+      a(i)=0.25d0*de(i)*((1.d0+3.d0*del(i,iuse))*ex**2
+     > -(6.d0+2.d0*del(i,iuse))
+     >   *ex)/ (1.d0+del(i,iuse))
+   11 continue
+      u=q(1)+q(2)+q(3)-sqrt(a(1)**2+a(2)**2+a(3)**2-a(1)*a(2)-
+     >   a(2)*a(3)-a(1)*a(3))
+      v=(u+de(1))
+c      write(6,*)v
+      return
+      end
+      subroutine gasleg(n,z,a)
+      implicit double precision (a-h,o-z)
+c *** routine to generate gauss-legendre points/weights
+c *** taken from ad van der avoird's n2-n2 code  (sg 11/7/91)
+c *** needs function zbes
+      dimension p(301),pd(301),z(1),a(1)
+      pi=acos(-1.d0)
+      if (n.le.300) go to 20
+      write (6,10)
+   10 format (/10x,31h***** gasleg  n too large *****/)
+      stop
+   20 nn=n+1
+      ifin=0
+      iodd=0
+      c=2.0d0/pi
+      c=1.0d0-(c*c)
+      if (mod(n,2).eq.0) go to 30
+      nknt=(n-1)/2
+      iodd=1
+      go to 40
+   30 nknt=n/2
+   40 k=1
+      cha=0.0d0
+      chb=0.0d0
+      p(1)=1.0d0
+      dn=n+0.50d0
+      dn2=dn*dn
+      den=sqrt(dn2+(c/4.0d0))
+   50 bes=zbes(k)
+      x=cos(bes/den)
+      pdx=1.0d0/(1.0d0-x*x)
+   60 continue
+      p(2)=x
+      do 70 i=3,nn
+      in=i-1
+      im=i-2
+      p(i)=((2.0d0*in-1.0d0)*x*p(in)-im*p(im))/in
+      pd(i)=in*pdx*(p(in)-x*p(i))
+   70 continue
+      if (ifin.eq.1) go to 100
+      if (abs(p(nn)).lt.1.0d-12) go to 80
+      x=x-(p(nn)/pd(nn))
+      pdx=1.0d0/(1.0d0-x*x)
+      go to 60
+   80 z(k)=x
+      ta=n*p(n)
+      ta=ta*ta
+      a(k)=(2.0d0*(1.0d0-x*x))/ta
+      cha=cha+2.0d0*a(k)
+      z2=z(k)*z(k)
+      chb=chb+2.0d0*a(k)*z2
+      if (k.eq.nknt) go to 90
+      k=k+1
+      go to 50
+   90 continue
+      if (iodd.eq.0) go to 110
+      x=0.0d0
+      k=nknt+1
+      z(k)=x
+      ifin=1
+      go to 60
+  100 ta=n*p(n)
+      ta=ta*ta
+      a(k)=2.0d0/ta
+      cha=cha+a(k)
+  110 continue
+      return
+      end
+      subroutine gaussp(a,b,npt,xpt,wht)
+      implicit double precision (a-h,o-z)
+      dimension xpt(npt),wht(npt)
+c
+c * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+c     this routine sets up abscissae and weights for npt-point        *
+c       gauss-legendre integration in the interval (a,b).             *
+c                                                                     *
+c     on return, the function to be integrated should be evaluated    *
+c       at the points xpt(i). integral = sum(i=1,npt) f(xpt(i))*wht(i)*
+c                                                                     *
+c     this version (sg 11/7/91) calculates points/weights from        *
+c       gasleg/zbes code of ad van der avoird                         *
+c     does any number of pts from 1 to mxpt, where limit is from      *
+c       dimension statements in gasleg (p,pd at least (mxpt+1) )      *
+c         and here w,x dimensioned at least  ((mxpt+1)/2)             *
+c                                                                     *
+c * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+c
+      dimension x(128),w(128)
+      data mxpt/256/
+c
+      t1=(b-a)/2.d0
+      t2=(b+a)/2
+      if (npt-1)  9999,9998,9997
+ 9997 if (npt.le.mxpt) go to 3100
+      write(6,601)  npt,mxpt
+  601 format('0 * * * warning. gauss-legendre npt =',i6,' reduced to',
+     1   i4)
+      npt=mxpt
+ 3100 call gasleg(npt,x,w)
+      n2=(npt+1)/2
+      i1=1
+      i2=npt
+      ic=1
+      do 2000 i=1,n2
+      xpt(i1)=-x(ic)*t1+t2
+      xpt(i2)=x(ic)*t1+t2
+      wht(i1)=w(ic)*t1
+      wht(i2)=wht(i1)
+      i1=i1+1
+      i2=i2-1
+ 2000 ic=ic+1
+c     n.b for npt odd, the last (i.e. middle) term is evaluated twice.
+      return
+ 9999 write(6,610)  npt
+  610 format('0 *** warning.  gauss-legendre requested with npt =',i6)
+c     replace with single-point at (a+b)/2 * (b-a)
+      npt=1
+ 9998 xpt(1)=t2
+      wht(1)=2.d0*t1
+      return
+      end
+C
+C 
+C These next few subroutines are for the bicubic spline of the
+C morse parameters in the RCMS fit of the Gordon MCSCF data.
+C
+      subroutine ibcccu (f,x,nx,y,ny,c,ic,wk,ier)                       ibcc0780
+      implicit real*8(a-h,o-z)
+c                                  specifications for arguments         ibcc0790
+      integer            nx,ny,ic,ier                                   ibcc0800
+      dimension          f(ic,1),x(1),y(1),c(2,ic,1),wk(1)              ibcc0810
+c                                  specifications for local variables   ibcc0820
+      integer            iwk                                            ibcc0830
+c                                  first executable statement           ibcc0840
+      ier = 129                                                         ibcc0850
+      if (ic .lt. nx) go to 9000                                        ibcc0860
+      ier = 130                                                         ibcc0870
+      if (nx .lt. 4) go to 9000                                         ibcc0880
+      ier = 131                                                         ibcc0890
+      if (ny .lt. 4) go to 9000                                         ibcc0900
+      iwk = 2*ny*nx                                                     ibcc0910
+      call ibcdcu(x,f,nx,ny,wk(iwk+1),wk,ic,ny,ier)                     ibcc0920
+      if (ier .gt. 0) go to 9000                                        ibcc0930
+      call ibcdcu(y,wk,ny,2*nx,wk(iwk+1),c,ny,2*ic,ier)                 ibcc0940
+      if (ier .eq. 0) go to 9005                                        ibcc0950
+ 9000 continue                                                          ibcc0960
+c     call uertst(ier,6hibcccu)                                         ibcc0970
+ 9005 return                                                            ibcc0980
+      end                                                               ibcc0990
+      subroutine ibcdcu (tau,gtau,n,m,w,vs,ic1,ic2,ier)                 ibcd0280
+      implicit real*8(a-h,o-z)
+c                                  specifications for arguments         ibcd0290
+      integer            n,m,ic1,ic2,ier                                ibcd0300
+      dimension          tau(n),gtau(ic1,1),w(n,2),vs(ic2,2,1)          ibcd0310
+c                                  specifications for local variables   ibcd0320
+      integer            i,jj,jm1,jp1,j,k,lim,ll,lp1,nm1                ibcd0330
+      real*8            aa,bb,c1,c2,cc,dd,dtau,g,h,ratio,u,xilim       ibcd0340
+c      real            aa,bb,c1,c2,cc,dd,dtau,g,h,ratio,u,xilim       ibcd0340
+c                                  first executable statement           ibcd0350
+      lim = n-3                                                         ibcd0360
+      nm1 = n-1                                                         ibcd0370
+      lp1 = lim+1                                                       ibcd0380
+      ier = 132                                                         ibcd0390
+      w(2,1) = tau(3)-tau(1)                                            ibcd0400
+      if (w(2,1).le.0.0d0) return                                       ibcd0410
+      do 5 k=1,m                                                        ibcd0420
+         vs(k,1,1) = gtau(1,k)                                          ibcd0430
+    5 continue                                                          ibcd0440
+      xilim = tau(1)                                                    ibcd0450
+      if (lim.lt.2) go to 20                                            ibcd0460
+      xilim = tau(n-2)                                                  ibcd0470
+      do 15 i=2,lim                                                     ibcd0480
+         j = i+1                                                        ibcd0490
+         w(j,1) = tau(i+2)-tau(j)                                       ibcd0500
+         if (w(j,1).le.0.0d0) return                                    ibcd0510
+         do 10 k=1,m                                                    ibcd0520
+   10    vs(k,1,i) = gtau(j,k)                                          ibcd0530
+   15 continue                                                          ibcd0540
+   20 w(lp1,1) = tau(n)-xilim                                           ibcd0550
+      if (w(lp1,1).le.0.0d0) return                                     ibcd0560
+      do 25 k=1,m                                                       ibcd0570
+   25 vs(k,1,lp1) = gtau(n,k)                                           ibcd0580
+      do 35 i=2,lp1                                                     ibcd0590
+         do 30 k=1,m                                                    ibcd0600
+   30    vs(k,2,i) = (vs(k,1,i)-vs(k,1,i-1))/w(i,1)                     ibcd0610
+   35 continue                                                          ibcd0620
+      dtau = tau(2)-tau(1)                                              ibcd0630
+      ratio = dtau/w(2,1)                                               ibcd0640
+      w(1,2) = (ratio-1.d0)**2                                          ibcd0650
+      w(1,1) = ratio*(ratio-1.d0)                                       ibcd0660
+      c1 = ratio*(2.d0*ratio-3.d0)                                      ibcd0670
+      do 40 k=1,m                                                       ibcd0680
+   40 vs(k,2,1) = (gtau(2,k)-gtau(1,k))/dtau+vs(k,2,2)*c1               ibcd0690
+      if (lim.lt.2) go to 55                                            ibcd0700
+      do 50 i=2,lim                                                     ibcd0710
+         j = i+1                                                        ibcd0720
+         jj = i-1                                                       ibcd0730
+         g = -w(j,1)/w(jj,2)                                            ibcd0740
+         c1 = 3.d0*w(i,1)                                               ibcd0750
+         c2 = 3.d0*w(j,1)                                               ibcd0760
+         do 45 k=1,m                                                    ibcd0770
+   45    vs(k,2,i) = g*vs(k,2,jj)+c1*vs(k,2,j)+c2*vs(k,2,i)             ibcd0780
+         w(i,2) = g*w(jj,1)+2.d0*(w(i,1)+w(j,1))                        ibcd0790
+   50 continue                                                          ibcd0800
+   55 dtau = tau(n-1)-xilim                                             ibcd0810
+      ratio = dtau/w(lp1,1)                                             ibcd0820
+      g = -(ratio-1.d0)**2/w(lim,2)                                     ibcd0830
+      w(lp1,2) = ratio*(ratio-1.d0)                                     ibcd0840
+      c1 = ratio*(2.d0*ratio-3.d0)                                      ibcd0850
+      do 60 k=1,m                                                       ibcd0860
+   60 vs(k,2,lp1) = (gtau(n-1,k)-vs(k,1,lim))/dtau+vs(k,2,lp1)*c1       ibcd0870
+      w(lp1,2) = g*w(lim,1)+w(lp1,2)                                    ibcd0880
+      do 65 k=1,m                                                       ibcd0890
+   65 vs(k,2,lp1) = (g*vs(k,2,lim)+vs(k,2,lp1))/w(lp1,2)                ibcd0900
+      j = lim                                                           ibcd0910
+   70 do 75 k=1,m                                                       ibcd0920
+   75 vs(k,2,j) = (vs(k,2,j)-w(j,1)*vs(k,2,j+1))/w(j,2)                 ibcd0930
+      j = j-1                                                           ibcd0940
+      if (j.gt.0) go to 70                                              ibcd0950
+      do 95 k=1,m                                                       ibcd0960
+         do 85 jj=1,n                                                   ibcd0970
+            j = n+1-jj                                                  ibcd0980
+            jm1 = j-1                                                   ibcd0990
+            if (j.eq.n) jm1 = j-2                                       ibcd1000
+            if (j.eq.1) jm1 = j                                         ibcd1010
+            do 80 ll=1,2                                                ibcd1020
+               vs(k,ll,j) = vs(k,ll,jm1)                                ibcd1030
+   80       continue                                                    ibcd1040
+   85    continue                                                       ibcd1050
+         do 90 j=2,nm1,lim                                              ibcd1060
+            jm1 = j-1                                                   ibcd1070
+            jp1 = j+1                                                   ibcd1080
+            if (jm1.eq.2) jm1 = 1                                       ibcd1090
+            if (jp1.eq.nm1) jp1 = n                                     ibcd1100
+            h = tau(jp1)-tau(jm1)                                       ibcd1110
+            u = tau(j)-tau(jm1)                                         ibcd1120
+            aa = vs(k,1,jm1)                                            ibcd1130
+            bb = vs(k,2,jm1)                                            ibcd1140
+            cc = (3.d0*(vs(k,1,jp1)-vs(k,1,jm1))/h-(vs(k,2,jp1)+        ibcd1150
+     *      2.d0*vs(k,2,jm1)))/h                                        ibcd1160
+            dd = (2.d0*(vs(k,1,jm1)-vs(k,1,jp1))/h+(vs(k,2,jp1)+        ibcd1170
+     *      vs(k,2,jm1)))/h**2                                          ibcd1180
+            vs(k,1,j) = aa+u*(bb+u*(cc+dd*u))                           ibcd1190
+            vs(k,2,j) = bb+u*(2.d0*cc+3.d0*dd*u)                        ibcd1200
+   90    continue                                                       ibcd1210
+   95 continue                                                          ibcd1220
+      ier = 0                                                           ibcd1230
+      return                                                            ibcd1240
+      end                                                               ibcd1250
+      subroutine ibcevl (x,nx,y,ny,c,ic,xl,yl,fl,ier)                   ibel0670
+      implicit real*8(a-h,o-z)
+c                                  specifications for arguments         ibel0680
+      integer            nx,ny,ic,ier                                   ibel0690
+      real*8             x(1),y(1),c(2,ic,1),xl,yl,fl                   ibel0700
+c      real             x(1),y(1),c(2,ic,1),xl,yl,fl                   ibel0700
+c                                  specifications for local variables   ibel0710
+      integer            i,j,lx,lypl,ly,l                               ibel0720
+c      real        hx,hy,suy(2),su(2),u,v,spln,s0,sh,sp0,sph,h,d        ibel0730
+      real*8     hx,hy,suy(2),su(2),u,v,spln,s0,sh,sp0,sph,h,d          ibel0730
+      spln(s0,sh,sp0,sph,h,d) = s0+d*(h*sp0+d*(3.d0*(sh-s0)-            ibel0740
+     * (sph+2.d0*sp0)*h+d*(2.d0*(s0-sh)+(sph+sp0)*h)))                  ibel0750
+c                                  first executable statement           ibel0760
+      ier = 0                                                           ibel0770
+      if (xl.lt.x(1)) ier = 33                                          ibel0780
+      do 5 i=2,nx                                                       ibel0790
+         lx = i-1                                                       ibel0800
+         if (xl.le.x(i)) go to 10                                       ibel0810
+    5 continue                                                          ibel0820
+      ier = 35                                                          ibel0830
+   10 if (yl.lt.y(1)) ier = 34                                          ibel0840
+      do 15 j=2,ny                                                      ibel0850
+         ly = j-1                                                       ibel0860
+         if (yl.le.y(j)) go to 20                                       ibel0870
+   15 continue                                                          ibel0880
+      ier = 36                                                          ibel0890
+   20 i = lx+1                                                          ibel0900
+      hx = x(i)-x(lx)                                                   ibel0910
+      hy = y(ly+1)-y(ly)                                                ibel0920
+      u = (xl-x(lx))/hx                                                 ibel0930
+      v = (yl-y(ly))/hy                                                 ibel0940
+      do 25 l=1,2                                                       ibel0950
+         lypl = ly-1+l                                                  ibel0960
+         j = 2*lypl-1                                                   ibel0970
+         su(l) = spln(c(1,lx,j),c(1,i,j),c(2,lx,j),c(2,i,j),hx,u)       ibel0980
+         j = 2*lypl                                                     ibel0990
+         suy(l) = spln(c(1,lx,j),c(1,i,j),c(2,lx,j),c(2,i,j),hx,u)      ibel1000
+   25 continue                                                          ibel1010
+      fl = spln(su(1),su(2),suy(1),suy(2),hy,v)                         ibel1020
+c     if (ier.gt.0) call uertst(ier,6hibcevl)                           ibel1030
+      return                                                            ibel1040
+      end                                                               ibel1050
+C  
+      subroutine splin1(nsurf)
+C
+C this reads in the data for E1, is 1A'.
+c
+      implicit real*8(a-h,o-z)
+      common/coef1/c(2,11,2,19,4),wk(2000),a(4)
+      common/param1/brspl,angl,aspsv,ngrd,nang
+      common/asymp/aa1(4),aa2(4),aa3(4),aa4(4)
+      dimension brspl(11),angl(19),aspsv(11,19,4),r(3)
+c      common/temp/scale
+c start 10/99 modification
+cc      data ifirst/1/
+c      if(ifirst.eq.1) then
+c      ifirst=0
+c      read(95,*) scale
+c      endif
+c end of 10/99 modification
+c  ngrd = number of phi's
+c  nang = number of theta's
+c  brspl = list of phi's
+c  angl = list of theta's
+      open(7,file='nH11datap')
+      call huti
+      read(7,*) ngrd,nang
+      do 912 iang=1,(nang+1)/2
+      read(7,*) angl(iang)
+      if(iang.ne.(nang+1)/2) angl(20-iang)=360.d0-angl(iang)
+      do 911  k=1,ngrd
+      read(7,*) brspl(k),(aspsv(k,iang,i),i=1,4)
+c scale factor for barrier
+C      aspsv(k,iang,1)=0.915d0*aspsv(k,iang,1)
+C      aspsv(k,iang,1)=0.8d0*aspsv(k,iang,1)
+      aspsv(k,iang,1)=0.815d0*aspsv(k,iang,1)
+c      aspsv(k,iang,1)=scale*aspsv(k,iang,1)
+      if(iang.eq.(nang+1)/2) go to 911
+      do 666 i=1,4
+       aspsv(k,20-iang,i)=aspsv(k,iang,i)
+666   continue
+  911 continue
+  912 continue
+c define phi=0 parameters
+      do 867 i=1,4
+      aa1(i)=aspsv(1,(nang+1)/2,i)
+  867 continue
+  869 format(1x,5d12.5)
+      do 21 k=1,4
+      call ibcccu(aspsv(1,1,k),brspl,ngrd,angl,nang,c(1,1,1,1,k),
+     > ngrd,wk,ier)
+  21  continue
+      close(7)
+      return
+      entry sph11(pot,fl,phi,tet)
+      do 22 k=1,4
+      call ibcevl(brspl,ngrd,angl,nang,
+     >    c(1,1,1,1,k),11,phi,tet,a(k),ier)
+   22 continue
+      pot=a(4)*(1.d0-exp(-a(3)*(fl-a(2))))**2+a(1)
+  213 format(1x,7d12.4)
+      return
+      end
+C
+      subroutine splin2
+C
+C this reads in the data for E3, ie 1A'' state
+c
+      implicit real*8(a-h,o-z)
+      common/coef2/c(2,11,2,19,4),wk(2000),a(4)
+      common/param2/brspl,angl,aspsv,ngrd,nang
+      common/asymp/aa1(4),aa2(4),aa3(4),aa4(4)
+c      common/temp/scale
+      dimension brspl(11),angl(19),aspsv(11,19,4),r(3)
+c  ngrd = number of phi's
+c  nang = number of theta's
+c  brspl = list of phi's
+c  angl = list of theta's
+      open(7,file='nH22datap')
+      read(7,*) ngrd,nang
+      do 912 iang=1,(nang+1)/2
+      read(7,*) angl(iang)
+      if(iang.ne.(nang+1)/2) angl(20-iang)=360.d0-angl(iang)
+      do 911  k=1,ngrd
+      read(7,*) brspl(k),(aspsv(k,iang,i),i=1,4)
+c scale factor for barrier
+C      aspsv(k,iang,1)=0.915d0*aspsv(k,iang,1)
+C      aspsv(k,iang,1)=0.8d0*aspsv(k,iang,1)
+      aspsv(k,iang,1)=0.815d0*aspsv(k,iang,1)
+c      aspsv(k,iang,1)=scale*aspsv(k,iang,1)
+      if(iang.eq.(nang+1)/2) go to 911
+      do 666 i=1,4
+ 666  aspsv(k,20-iang,i)=aspsv(k,iang,i)
+  911 continue
+  912 continue
+      do 867 i=1,4
+      aa2(i)=aspsv(1,(nang+1)/2,i)
+  867 continue
+  869 format(1x,5d12.5)
+      do 21 k=1,4
+      call ibcccu(aspsv(1,1,k),brspl,ngrd,angl,nang,c(1,1,1,1,k),
+     > ngrd,wk,ier)
+  21  continue
+      close(7)
+      return
+      entry sph22(pot,fl,phi,tet)
+      do 22 k=1,4
+      call ibcevl(brspl,ngrd,angl,nang,
+     >     c(1,1,1,1,k),11,phi,tet,a(k),ier)
+   22 continue
+      pot=a(4)*(1.d0-exp(-a(3)*(fl-a(2))))**2+a(1)
+  213 format(1x,7d12.4)
+      return
+      end
+C  
+      subroutine splin3(nsurf)
+C
+      implicit real*8(a-h,o-z)
+      common/coef3/c(2,11,2,19,4),wk(2000),a(4)
+      common/param3/brspl,angl,aspsv,ngrd,nang
+      common/asymp/aa1(4),aa2(4),aa3(4),aa4(4)
+      dimension brspl(11),angl(19),aspsv(11,19,4),r(3)
+c  ngrd = number of phi's
+c  nang = number of theta's
+c  brspl = list of phi's
+c  angl = list of theta's
+      open(7,file='nH21datap')
+      read(7,*) ngrd,nang
+      do 912 iang=1,(nang+1)/2
+      read(7,*) angl(iang)
+      if(iang.ne.(nang+1)/2) angl(20-iang)=360.d0-angl(iang)
+      do 911  k=1,ngrd
+      read(7,*) brspl(k),(aspsv(k,iang,i),i=1,3)
+      if(iang.eq.(nang+1)/2) go to 911
+      do 666 i=1,3
+       aspsv(k,20-iang,i)=aspsv(k,iang,i)
+666   continue
+  911 continue
+  912 continue
+c define phi=0 parameters
+      do 867 i=1,3
+      aa3(i)=aspsv(1,(nang+1)/2,i)
+  867 continue
+  869 format(1x,5d12.5)
+      do 21 k=1,3
+      call ibcccu(aspsv(1,1,k),brspl,ngrd,angl,nang,c(1,1,1,1,k),
+     > ngrd,wk,ier)
+  21  continue
+      close(7)
+      return
+      entry sph21(pot,fl,phi,tet)
+      thet=tet*acos(-1.d0)/180.d0
+C      ph=phi*acos(-1.d0)/180.d0
+C      r1=2.80677d0-fl*cos(ph)
+C      r2=2.80677d0-fl*sin(ph)
+C      rl=(r1**2+r2**2)
+      do 22 k=1,3
+      call ibcevl(brspl,ngrd,angl,nang,
+     >    c(1,1,1,1,k),11,phi,tet,a(k),ier)
+   22 continue
+      pot=(a(1)*fl**3+a(2)*fl**2+a(3)*fl)*sin(thet)
+C      pot=(a(1)*fl**3+a(2)*fl**2+a(3)*fl)
+C      pot=(a(1)*fl**2+a(2)*fl+a(3))
+C
+C      pot=(a(1)/rl**3+a(2)/rl**2+a(3)/rl)*sin(thet)
+  213 format(1x,7d12.4)
+      return
+      end
+C  
+      subroutine splin4(nsurf)
+C
+C this reads in the data for V22. 
+c
+      implicit real*8(a-h,o-z)
+      common/coef4/c(2,11,2,19,4),wk(2000),a(4)
+      common/param4/brspl,angl,aspsv,ngrd,nang
+      common/asymp/aa1(4),aa2(4),aa3(4),aa4(4)
+c      common/temp/scale
+      dimension brspl(11),angl(19),aspsv(11,19,4),r(3)
+c  ngrd = number of phi's
+c  nang = number of theta's
+c  brspl = list of phi's
+c  angl = list of theta's
+      open(7,file='nE3datap')
+      read(7,*) ngrd,nang
+      do 912 iang=1,(nang+1)/2
+      read(7,*) angl(iang)
+      if(iang.ne.(nang+1)/2) angl(20-iang)=360.d0-angl(iang)
+      do 911  k=1,ngrd
+      read(7,*) brspl(k),(aspsv(k,iang,i),i=1,4)
+c scale factor for barrier
+C      aspsv(k,iang,1)=0.915d0*aspsv(k,iang,1)
+C      aspsv(k,iang,1)=0.8d0*aspsv(k,iang,1)
+      aspsv(k,iang,1)=0.815d0*aspsv(k,iang,1)
+c      aspsv(k,iang,1)=scale*aspsv(k,iang,1)
+      if(iang.eq.(nang+1)/2) go to 911
+      do 666 i=1,4
+       aspsv(k,20-iang,i)=aspsv(k,iang,i)
+666   continue
+  911 continue
+  912 continue
+c define phi=0 parameters
+      do 867 i=1,4
+      aa4(i)=aspsv(1,(nang+1)/2,i)
+  867 continue
+  869 format(1x,5d12.5)
+      do 21 k=1,4
+      call ibcccu(aspsv(1,1,k),brspl,ngrd,angl,nang,c(1,1,1,1,k),
+     > ngrd,wk,ier)
+  21  continue
+      close(7)
+      return
+      entry spe3(pot,fl,phi,tet)
+      do 22 k=1,4
+      call ibcevl(brspl,ngrd,angl,nang,
+     >    c(1,1,1,1,k),11,phi,tet,a(k),ier)
+   22 continue
+      pot=a(4)*(1.d0-exp(-a(3)*(fl-a(2))))**2+a(1)
+  213 format(1x,7d12.4)
+      return
+      end
+C
+      double precision function var_ar(r)
+      implicit double precision(a-h,o-z)
+c
+c     calculates the ar-ar potential of aziz and slaman,
+c     mol phys 58, 679 (1986).
+c
+c     the function value is returned in cm-1
+c      
+      dimension c(0:2)
+c dimensionless parameters
+      data a/2.26210716d+05/, alp/10.77874743d0/, bet/-1.8122004d0/
+      data c/1.10785136d0,0.56072459d0,0.34602794d0/
+      data d/1.36d0/
+c eps in k and rm in a 
+      data eps/143.224d0/, rm/3.7565d0/
+c ek converts from k to cm-1
+      data ek/0.6950387d0/
+c      
+      x=r/rm
+      xx=1.d0/(x*x)
+      attr = xx**3 * (c(0)+xx*(c(1)+xx*c(2)))
+      if(x.lt.d) attr = attr * exp(-(d/x - 1.d0)**2)
+      rep = a*exp(x*(x*bet-alp))
+      var_ar = ek*eps*(rep-attr)
+      return
+      end
+      subroutine var_cl(r,v0,v2)
+      implicit double precision(a-h,o-z)
+c
+c     calculates the ar-cl potential of aquilanti et al.,
+c     j phys chem 97, 2063 (1993)
+c
+c     the v_0 and v_2 potentials, converted to cm-1, are returned
+c     in v0 and v2
+c
+      data eps/12.85d0/, rm/3.88d0/, beta/6.20d0/, c0/5.1648d+04/
+      data x1/1.15d0/, x2/1.5d0/ 
+      data b1/-0.6334d0/, b2/1.5142d0/, b3/-4.1368d0/, b4/2.8363d0/
+      data a2/1.2484d+06/, alpha2/3.0d0/, c2/9.297d+03/
+      data cme/8.0655410d0/
+c cme transforms from mev to /cm
+
+      x=r/rm
+      r6= r**6
+      if(x.le.x1)then
+        fx= exp(-2.d0*beta*(x-1)) -2.d0*exp(-beta*(x-1))
+      elseif(x.gt.x1.and.x.lt.x2)then
+        fx= b1 + (x-x1)*(b2+ (x-x2)*(b3 + (x-x1)*b4))
+      elseif(x.ge.x2)then
+c        fx= -c0/(eps*(rm**6)*r6)
+c correction from Hutson:
+      fx=-c0/(eps*r6)
+      endif
+      v0=cme*fx*eps
+      v2=cme*(-a2*exp(-alpha2*r) + c2/r6)
+      return
+      end
+      subroutine velec(r,p,lambda,mxlmb,ra2,space)
+      implicit double precision(a-h,o-z)
+      dimension p(mxlmb),lambda(3,mxlmb)
+      logical space
+c
+c     calculates dipole-quadrupole and quadrupole-quadrupole
+c     electrostatic coefficients for interaction of a linear
+c     molecule with an atom in a p state.
+c     as described by dubernet and hutson, j chem phys (1994) and
+c     j phys chem (1994).
+c
+c     p is an array of potential coefficients, in the order specified
+c       by lambda. on return, the appropriate p values are modified to 
+c       include dipole-quadrupole and quadrupole-quadrupole 
+C       contributions
+c     lambda is an array of sets of three integers specifying the
+c       coefficients in the expansion:
+c       body-fixed:  lambda_a, lambda_r, mu
+c       space-fixed: lambda_a, lambda_r, lambda_12
+c       note that the ordering of lambda_a and lambda_r is not the  
+c       same as in dubernet and hutson 
+c     mxlmb is the second dim of the lambda array (number of terms) 
+c     space controls whether space-fixed or body-fixed expansion used
+c     ra2 is the mean square radius for the p-state atom (atomic units)
+c
+c     molecular multipoles (in atomic units) must be passed in common
+c
+      common/pol/alprg,dipm,thetam,rhx,rcm
+c
+c     r is in a; coefficients p are generated in cm-1
+c     calculation is done in atomic units and converted. factors are
+c
+      data aur/0.52917706d0/
+      data aue/219474.6354d0/
+c
+      rr=r/aur
+      dfac=aue*ra2/rr**4
+      qfac=dfac*thetam/rr
+      dfac=dfac*dipm
+c
+      do 1 i=1,mxlmb 
+      la=lambda(1,i)
+      lr=lambda(2,i)
+      nu=lambda(3,i)
+      if(space) then
+        if(la.eq.2 .and. nu.eq.lr+la) then
+          if(lr.eq.1) p(i)=p(i)+sqrt(15.d0)*dfac
+          if(lr.eq.2) p(i)=p(i)+sqrt(70.d0)*qfac
+        endif
+      else
+        if(la.eq.2) then
+          if(lr.eq.1) then
+            if(nu.eq.0) p(i)=p(i) + 3.d0*dfac
+            if(nu.eq.1) p(i)=p(i) + sqrt(3.d0)*dfac
+          elseif(lr.eq.2) then
+            if(nu.eq.0) p(i)=p(i) + 6.d0*qfac
+            if(nu.eq.1) p(i)=p(i) + 4.d0*qfac
+            if(nu.eq.2) p(i)=p(i) +      qfac
+          endif
+        endif
+      endif
+c     write(10,122)r,la,lr,nu,p(i)
+c 122 format(f7.4,3(i4),d25.16)
+    1 continue     
+      return
+      end
+      subroutine vrtp(ideriv,r,v)
+      implicit double precision (a-h,o-z)
+      save
+      common/angles/cosang(3),factor,ihomo,icnsym
+      common/potl/pot(100)
+      common/vib/eta
+      if(ideriv.ne.0) goto 100
+      v=extpot(r,cosang(1))
+      return
+c
+  100 if(ideriv.gt.0) then
+        write(6,601)
+  601   format('0*** error in vrtp - potential derivatives',
+     1    ' not supported by this version')
+        stop
+      endif
+c
+      if(ideriv.lt.-1) return
+      read(39,*) npot
+      do 200 i=1,npot
+      read(39,*) pot(i)
+  200 continue
+      read(39,*) eta
+      call extint
+      r=1.d0
+      v=1.d0
+      return
+      end
+      function pleg(n,x)
+c
+c     subroutine to generate legendre polynomials
+c
+      implicit double precision (a-h,o-z)
+      pleg=1.0d0
+      if(n.eq.0) return
+      p0=1.0d0
+      p1=x
+      do 100 k=3,n+1
+      temp=(dble(2*k-3)*x*p1 - dble(k-2)*p0) / dble(k-1)
+      p0=p1
+      p1=temp
+  100 continue
+      pleg=p1
+      return
+      end
+      function pasleg(l,mm,x)
+c
+c     calculate normalised associated legendre polynomials
+c
+      implicit double precision (a-h,o-z)
+      dimension p(450)
+      nreq=(l+1)*(l+2)/2
+      if(nreq.gt.450) then
+        write(6,601) l
+  601   format('0 *** error in pasleg - not enough storage for l=',i3)
+        stop
+      endif
+      call assleg(p,l,x,450)
+      m=abs(mm)
+      ind=l*(l+1)/2+m+1
+      fac=0.5d0*dble(l+l+1)
+      do 100 i=l-m+1,l+m
+      fac=fac/dble(i)
+  100 continue
+      pasleg=p(ind)*sqrt(fac)
+      return
+      end
+      function zbes(k)
+c *** routine required by gasleg (gauss legendre pt/wt generator)
+c *** taken from ad van der avoird's n2-n2 code  (sg 11/7/91)
+      double precision pi,zbes,b,bb,b3,b5,b7
+      pi=acos(-1.d0)
+      b=(dble(k)-0.25d0)*pi
+      bb=1.0d0/(8.0d0*b)
+      b3=bb*bb*bb
+      b5=b3*bb*bb
+      b7=b5*bb*bb
+      zbes=b+bb-(124.0d0/3.0d0)*b3+(120928.0d0/15.0d0)*b5
+     > -(401743168.0d0/105.0d0)*b7
+      return
+      end
+      function sumleg(coeff,np,x)
+      implicit double precision (a-h,o-z)
+c   
+c     sumleg evaluates a legendre series at a given angle theta, using
+c     the recursion relationship for legendre polynomials.
+c
+c     on input, coeff is the legendre series, starting at p0
+c               np    is the order of the legendre series
+c               x     is cos(theta)
+c
+      dimension coeff(np)
+      if(np.ge.1) goto 1
+      write(6,601)np
+  601 format(/' **** error in sumleg: np =',i5)
+      stop
+    1 sumleg=coeff(1)
+      if(np.eq.1) return
+      sumleg=sumleg+x*coeff(2)
+      if(np.eq.2) return
+      p0=1.d0
+      p1=x
+      do 10 k=3,np
+      temp=(dble(k+k-3)*x*p1 - dble(k-2)*p0) / dble(k-1)
+      p0=p1
+      p1=temp
+   10 sumleg=sumleg+p1*coeff(k)
+      return
+      end
+      subroutine assleg(p,lmax,x,n)
+      implicit double precision (a-h,o-z)
+      dimension p(n)
+      p0=1.d0
+      p1=x
+      p(1)=p0
+      p(2)=p1
+      ind=2
+      do 100 l=2,lmax
+      temp=(dble(l+l-1)*x*p1-dble(l-1)*p0)/dble(l)
+      p0=p1
+      p1=temp
+      ind=ind+l
+      p(ind)=p1
+  100 continue
+c
+c     now the ones for k.gt.0
+c     note that this isn't stable for high order and x near +/-1
+c
+      if( (x.gt.0.999999d0).or.(x.lt.-0.999999d0)) then
+C
+      do 210 k=1,lmax
+      ind=k*(k+1)/2
+      do 210 l=k,lmax
+      indm=ind
+      ind=ind+l
+      indp=ind+1
+      p(indp)=0.d0
+  210 continue
+C
+      else
+C
+      sinth=sqrt(1.d0-x*x)
+      do 200 k=1,lmax
+      ind=k*(k+1)/2
+      do 200 l=k,lmax
+      indm=ind
+      ind=ind+l
+      indp=ind+1
+      p(indp)=-(dble(l-k+1)*x*p(ind)-dble(l+k-1)*p(indm))/sinth
+  200 continue
+C
+      end if
+      return
+      end
+      function extpot(r,costh)
+c
+c     subroutine to evaluate hfd-type fitting potential with
+c     point-charge + quadrupole induction energy
+c     for rare gas - hydrogen halide systems
+c     (functional forms h4, h5 and h6 and eta-dependent variants)
+c
+c     version of june 1991 (incorporating com shift)
+c     note that the vprm array is not compatible with earlier
+c     versions - this one uses 9:12 instead of 5:8 for beta, so that
+c     5:8 are available for higher-order legendre terms in epsilon.
+c
+c     see j. m. hutson, j. chem. phys. 96, 6752 (1992) (ar-hf)
+c                  and  j. phys. chem. 96, 4237 (1992) (ar-hcl)
+c     for earlier work involving related potential forms, see
+c                       j. chem. phys. 89, 4550 (1988);
+c                       j. chem. phys. 91, 4448 (1989);
+c                       j. chem. phys. 91, 4455 (1989).
+c
+c     function by j. m. hutson, department of chemistry,
+c     university of durham, durham, dh1 3le, england.
+c     tel: +44 91 374 3110
+c     fax: +44 91 374 3745
+c     electronic mail:   j.m.hutson @ durham.ac.uk
+c
+c     this function evaluates the ar-hx eta-dependent potentials for a
+c     single value of the intermolecular distance (r) and
+c     cosine theta (costh).
+c     r must be supplied in angstroms and the result is returned
+c     in cm-1, but internal workings are in atomic units.
+c
+c     on entry, the potential parameters must be in common block potl.
+c     the eta=0, linear and quadratic terms are in 
+C      separate blocks of 16.
+c     for the h6 potential, the blocks are:
+c       vprm(1:8)   are legendre components of well depth eps
+c       vprm(9:12)  are legendre components of exponent beta
+c       vprm(13:16) are legendre components of minimum distance re
+c       vprm(17:32) and vprm(33:48) repeat the pattern for linear and
+c                   quadratic terms in eta
+c       vprm(49)    is gamma (ie fixed c10/c8 ratio)
+c     the vprm array is used slightly differently for the h4 and h5 
+C     forms.
+c
+c     the required value of eta must be in common block vib
+c
+c     subroutine extint must be called before extpot (once in each
+c     program run, or for each new set of potential parameters)
+c     to read long-range parameters and set up common 
+C     blocks pol and disp.
+c
+      implicit double precision (a-h,o-z)
+      save
+      dimension p(10),dp(10)
+      dimension pot(16),dipv(3),quadv(3),c6v(3),alavv(3),dalpv(3),
+     1   aparv(3),aperpv(3)
+c
+      common/potl/vprm(100)
+      common/pol/alprg,dip,quad,rhx,rcm
+      common/disp/c6,da,f1,f3
+      common/vib/eta
+c
+      data ipot/6/
+      data etlast/-999.d0/
+      data aue/219474.6354d0/
+      data aur/0.52917706d0/
+c
+      f(costh,width)=1.d0-(0.5d0*(1.d0+costh))**width
+c
+c     check if eta has changed, and recalculate pot if necessary
+c
+      if(eta.ne.etlast) then
+        do 50 i=1,16
+        pot(i)=vprm(i)+eta*(vprm(i+16)+eta*vprm(i+32))
+   50   continue
+        gamma=vprm(49)
+c
+c       long-range coefficients
+c
+        dip=dipv(1)+eta*(dipv(2)+eta*dipv(3))
+        quad=quadv(1)+eta*(quadv(2)+eta*quadv(3))
+        c6=c6v(1)+eta*(c6v(2)+eta*c6v(3))
+        alav=alavv(1)+eta*(alavv(2)+eta*alavv(3))
+        dalpha=dalpv(1)+eta*(dalpv(2)+eta*dalpv(3))
+        apar=aparv(1)+eta*(aparv(2)+eta*aparv(3))
+        aperp=aperpv(1)+eta*(aperpv(2)+eta*aperpv(3))
+        da=dalpha/(3.d0*alav)
+        f1=4.d0*aperp/alav
+        f3=(2.d0*apar-8.d0*aperp/3.d0)/alav
+        etlast=eta
+      endif
+c
+c     check that the long-range parameters have been initialised.
+c     this is not entirely foolproof, but it is a useful check.
+c
+      if(c6.le.0.d0 .or. alprg.le.0.d0) goto 998
+c
+c     transform input r and cos theta to coordinate system for
+c     reference isotopic species
+c
+      t=-cmshft/r
+      temp=sqrt(1.d0+t*(t+costh+costh))
+      rprime=r*temp
+      csthpr=(costh+t)/temp
+c
+      if(csthpr.eq.clast .and. pot(1).eq.eplast) goto 100
+      clast=csthpr
+      eplast=pot(1)
+c
+c     evaluate well depth and rmin: legendre sum or f(cos theta)
+c
+      if(ipot.eq.5) then
+        eps=pot(1)+pot(2)*f(csthpr,pot(3))
+        if(csthpr.lt.0.d0) eps=eps+pot(4)*csthpr*csthpr
+      else
+        eps=sumleg(pot(1),5,csthpr)
+      endif
+      beta=sumleg(pot(9),4,csthpr)
+      if(ipot.le.5) then
+        re=pot(13)+pot(14)*f(csthpr,pot(15))
+        if(csthpr.lt.0.d0) re=re+pot(16)*csthpr*csthpr
+      else
+        re=sumleg(pot(13),4,csthpr)
+      endif
+c
+c     convert everything into atomic units
+c
+      eps=eps/aue
+      beta=beta*aur
+      re=re/aur
+c
+c     get a and c8 from eps, beta and re
+c     this is a generalisation of the procedure described in
+c     the appendix to j. m. hutson, j. chem. phys. 89, 4550 (1988)
+c
+      call getac(eps,re,csthpr,0.d0,beta,c6,da,f1,f3,gamma,a,c8)
+c
+  100 rr=rprime/aur
+c
+c     get leading terms in induction potential
+c
+      v=vind(rr,csthpr)
+c
+c     get dispersion damping functions and derivatives
+c
+      call damp(6,10,beta,rr,p,dp)
+c
+c     now evaluate the potential itself
+c
+      r2=rr*rr
+      r6=r2**3
+      v6=-c6/r6*(1.d0+da*(1.5d0*csthpr*csthpr-0.5d0))
+      r7=rr*r6
+      v7=-c6/r7*csthpr*(f1+f3*csthpr*csthpr)
+      v=v+v6*p(6)+v7*p(7)
+      v=v+a*exp(-beta*rr)-c8*(p(8)+gamma*p(10)/r2)/(r6*r2)
+      extpot=v*aue
+      return
+c
+  998 write(6,999)
+  999 format('0*** error in subroutine extpot.'
+     > /' extint must be called'
+     > ,' before extpot to read parameters for long-range potential.')
+      stop
+c
+      entry extint
+c
+c     read induction and dispersion parameters (in atomic units)
+c     and process them a little.
+c     ipot is the numeric part of the function name (h4, h5, h6)
+c
+      read(39,*) ipot
+      read(39,*) alprg
+      read(39,*) (dipv(i),i=1,3)
+      read(39,*) (quadv(i),i=1,3)
+      read(39,*) (c6v(i),i=1,3)
+      read(39,*) (alavv(i),i=1,3)
+      read(39,*) (dalpv(i),i=1,3)
+      read(39,*) (aparv(i),i=1,3)
+      read(39,*) (aperpv(i),i=1,3)
+      read(39,*) cmshft,rhx,rcm
+c
+      write(6,601) alprg,dipv,quadv,c6v,alavv,dalpv,aparv,aperpv
+  601 format(' induction and dispersion parameters (atomic units):'/
+     1   '0rare gas polarizability',t40,f8.3/
+     2   ' diatom dipole moment',t40,3f8.4/
+     3   ' diatom quadrupole moment',t40,3f8.3/
+     4   '0isotropic c6 coefficient',t40,3f8.3/
+     5   ' diatom isotropic polarizability',t40,3f8.3/
+     6   ' diatom polarizability anisotropy',t40,3f8.3/
+     7   ' diatom parallel a tensor',t40,3f8.3/
+     8   ' diatom perpendicular a tensor',t40,3f8.3)
+c
+      write(6,602) rhx,cmshft,rcm
+  602 format('0diatom bond length',t45,f8.6,' a'/
+     1   ' diatom centre of mass shift',t45,f8.6,' a'/
+     2   ' distance from x atom to quadrupole origin',t45,f8.6,' a')
+      rhx=rhx/aur
+      rcm=rcm/aur
+      return
+      end
+      subroutine getac(eps,r,cost,t,beta,c6,da,f1,f3,gamma,a,c8)
+c
+c     subroutine to calculate a and c8 required to give specified
+c     well depth and rmin for given beta and dispersion and
+c     induction interactions up to 1/r**7.
+c     on input:
+c       da    = (alpha(par)-alpha(perp))/(alpha(par)+2*alpha(perp))
+c       f1    = 4 a(perp) / alpha(av)
+c       f3    = (2 a(par) - 8 a(perp)/3) / alpha(av)
+c       common block pol must contain multipoles and polarizabilities
+c
+      implicit double precision (a-h,o-z)
+      save
+      logical noc8
+      dimension p(10),dp(10)
+      data noc8/.false./
+c
+      temp=sqrt(1.d0 + t*t + 2.d0*t*cost)
+      rprime=r*temp
+      csthpr=(cost+t)/temp
+      call dvind(rprime,csthpr,v,dv)
+      call damp(6,10,beta,rprime,p,dp)
+      r2=rprime*rprime
+      r6=r2**3
+      v6=-c6/r6*(1.d0+da*(1.5d0*csthpr*csthpr-0.5d0))
+      v7=-c6/(rprime*r6)*csthpr*(f1+f3*csthpr*csthpr)
+      v=v+v6*p(6)+v7*p(7)
+      dv=dv+v6*(dp(6)-6.d0*p(6)/rprime)
+     >     +v7*(dp(7)-7.d0*p(7)/rprime)
+c
+      if(noc8) goto 200
+      r8=r6*r2
+      c8=(beta*(eps+v)+dv)/((dp(8)-p(8)*(8.d0/rprime-beta))
+     >   +(dp(10)-p(10)*(10.d0/rprime-beta))*gamma/r2)*r8
+      a=(c8*(p(8)+gamma*p(10)/r2)/r8-eps-v)*exp(beta*rprime)
+      return
+c
+c     special case of c8=0, ignoring input eps
+c
+  200 c8=0.d0
+      a=dv/beta*exp(beta*rprime)
+      return
+      end
+      function vind(r,costh)
+      implicit double precision (a-h,o-z)
+      save
+      dimension q(4),rq(4)
+c
+c     this routine works entirely in atomic units.
+c
+      common/pol/alprg,dip,quad,rhx,rcm
+c
+      pi=dacos(-1.d0)
+c
+      ncharg=2
+      q(1)=dip/rhx
+      q(2)=-q(1)
+      rq(1)=rhx-rcm
+      rq(2)=-rcm
+      quadp=quad-(q(1)*rq(1)*rq(1)+q(2)*rq(2)*rq(2))
+c
+      sinth=sqrt(1.0d0-costh*costh)
+c
+      ez=0.0d0
+      ex=0.0d0
+      do 200 nc=1,ncharg
+      rrgq=sqrt(r*r+rq(nc)*rq(nc)-2.0d0*r*rq(nc)*costh)
+      sine=sinth*rq(nc)/rrgq
+      cosn=sqrt(1.0d0-sine*sine)
+      fac=q(nc)/(rrgq*rrgq)
+      ez=ez+fac*cosn
+      ex=ex+fac*sine
+      if(nc.ne.2) goto 200
+      cosin=(r*costh-rq(2))/rrgq
+      sinin=sqrt(1.0d0-cosin*cosin)
+      equad=1.5d0*quadp*(3.d0*cosin*cosin-1.d0)/rrgq**4
+      ez=ez+equad*cosn
+      ex=ex+equad*sine
+      equad=3.0d0*quadp*sinin*cosin/rrgq**4
+      ez=ez+equad*sine
+      ex=ex+equad*cosn
+  200 continue
+c
+      dipz=ez*alprg
+      dipx=ex*alprg
+      eind=-0.5d0*(ez*dipz+ex*dipx)
+      vind=eind
+c
+      return
+      end
+      subroutine dvind(r,costh,v,dv)
+      implicit double precision (a-h,o-z)
+      save
+      data eps/1.d-4/
+      v=vind(r,costh)
+      dv=(vind(r+eps,costh)-vind(r-eps,costh))/(eps+eps)
+      return
+      end
+      subroutine damp(kmin,kmax,beta,r,p,dp)
+      implicit double precision (a-h,o-z)
+      save
+c
+c     subroutine for the efficient calculation of the tang-toennies
+c     damping functions and their first derivatives
+c     see j. chem. phys. 80, 3726 (1984).
+c
+      dimension p(kmax),dp(kmax)
+c
+      y=1.d0
+      z=1.d0
+      br=beta*r
+      do 100 k=1,kmax
+      y=y*br/dble(k)
+      z=z+y
+  100 p(k)=z
+c
+      z=exp(-br)
+      do 200 k=kmin,kmax
+  200 dp(k)=(p(k)-p(k-1))*beta*z
+      do 300 k=kmin,kmax
+  300 p(k)=1.d0-z*p(k)
+      return
+      end
+

@@ -1,0 +1,100 @@
+ClH2 - 12 potentials that are variants of the same thing
+cl+h2 dim with prepot,pot,ptpacm
+1  -rw-rw-r-- 1 duchovic theochem 50491 Jun 16 12:38 clh2dima.f
+cl+h2 dim with prepot,pot,ptpacm
+2  -rw-rw-r-- 1 duchovic theochem 36596 Jun 16 12:38 clh2dims.f
+cl+h2 leps with prepot,pot,ptpacm
+3  -rw-rw-r-- 1 duchovic theochem  8481 Jun 16 12:38 clh2g1.f
+cl+h2 multisurface with prepot, poor pot, no ptpacm
+4  -rw-rw-r-- 1 duchovic theochem  9148 Jun 16 12:38 clh2g3ta1.f
+cl+h2 multisurface with prepot, poor pot, no ptpacm
+5  -rw-rw-r-- 1 duchovic theochem  9348 Jun 16 12:38 clh2g3ta1v.f
+cl+h2 multisurface with prepot, poor pot, no ptpacm
+6  -rw-rw-r-- 1 duchovic theochem  9156 Jun 16 12:38 clh2g3ta2.f
+cl+h2 multisurface with prepot, poor pot, no ptpacm
+7  -rw-rw-r-- 1 duchovic theochem  9355 Jun 16 12:38 clh2g3ta2v.f
+cl+h2 multisurface with prepot, poor pot, no ptpacm
+8  -rw-rw-r-- 1 duchovic theochem  9177 Jun 16 12:38 clh2g3ta3.f
+cl+h2 multisurface with prepot, poor pot, no ptpacm
+9  -rw-rw-r-- 1 duchovic theochem  9377 Jun 16 12:38 clh2g3ta3v.f
+cl+h2 multisurface with prepot, poor pot, no ptpacm
+10 -rw-rw-r-- 1 duchovic theochem  9236 Jun 16 12:38 clh2g3ta4.f
+cl+h2 multisurface with prepot, poor pot, no ptpacm
+11 -rw-rw-r-- 1 duchovic theochem  9254 Jun 16 12:38 clh2g3ta4v.f
+cl+h2 multisurface with prepot, poor pot, no ptpacm
+12 -rw-rw-r-- 1 duchovic theochem  2536 Jun 16 12:38 clh2g3v.f
+utility routine used by all the codes above
+-rw-rw-r-- 1 duchovic theochem  4671 Jun 16 12:38 dlaev2.f
+
+ClHBr with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem  7247 Jun 16 12:38 clhbr.f
+
+ClCH3Cl with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem 46083 Jun 16 12:38 cmc.f
+
+FH2 with prepot,pot,ptpacm
+-rw-rw-r-- 1 duchovic theochem 33482 Jun 16 12:38 fh25secgm4.f
+
+*H2Se with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem  5001 Jun 16 12:38 h2sekh.f
+
+H2S with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem  4729 Jun 16 12:38 h2skh.f
+
+H3 with 6 potentials
+• H3 with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem 58879 Jun 16 12:38 h3bkmp.f
+• H3 with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem 28493 Jun 16 12:38 h3.f
+• H3 with prepot,pot,ptpacm
+-rw-rw-r-- 1 duchovic theochem 14103 Jun 16 12:38 h3lsth1d.f
+• H3 with prepot,pot,ptpacm
+-rw-rw-r-- 1 duchovic theochem 24286 Jun 16 12:38 h3lstha.f
+• H3 with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem 10947 Jun 16 12:38 h3lsthb.f
+• H3 with prepot,pot,ptpacm
+-rw-rw-r-- 1 duchovic theochem 17065 Jun 16 12:38 h3lsth.f
+
+HCl2 with prepot, no pot,ptpacm
+-rw-rw-r-- 1 duchovic theochem 25615 Jun 16 12:38 hcl2sfpolci.f
+
+HO2 with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem 11779 Jun 16 12:38 ho2.f
+
+NaFH with nothing
+-rw-rw-r-- 1 duchovic theochem 42122 Jun 16 12:38 nafh.f
+
+NaH2 with nothing
+-rw-rw-r-- 1 duchovic theochem 69121 Jun 16 12:38 nah2dim4.f
+
+NH3 with nothing
+-rw-rw-r-- 1 duchovic theochem 21701 Jun 16 12:38 nh3.f
+
+OH2 with 7 potentials
+• OH2 with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem 17397 Jun 16 12:38 oh2dimrmos.f
+• OH2 with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem 27898 Jun 16 12:38 oh2j2adp.f
+• OH2 with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem 27797 Jun 16 12:38 oh2j3adp.f
+• OH2 with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem 27831 Jun 16 12:38 oh2j3ap.f
+• OH2 with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem 20726 Jun 16 12:38 oh2modpolci.f
+• *H2O with nothing
+-rw-rw-r-- 1 duchovic theochem  1912 Jun 16 12:38 h2okh.f
+• H2O with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem  4285 Jun 16 12:38 h2omkh.f
+
+OH3 with prepot,pot, no ptpacm
+-rw-rw-r-- 1 duchovic theochem 11601 Jun 16 12:38 oh3.f
+
+OddPESs (unusual PESs that may be unusual to make potlib compliant)
+• dummy routine used in polyrate
+-rw-rw-r-- 1 duchovic theochem  1712 Jun 16 12:38 dumpot.f
+• H on Ni Surface with nothing
+-rw-rw-r-- 1 duchovic theochem 54808 Jun 16 12:38 hni.f
+• H2 on Ni surface with nothing
+-rw-rw-r-- 1 duchovic theochem 17386 Jun 16 12:38 h2ni.f
+• ClCH3Cl with nothing
+-rw-rw-r-- 1 duchovic theochem 90974 Jun 16 12:38 cwmc.f

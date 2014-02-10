@@ -1,0 +1,555 @@
+      implicit real*8(a-h,o-z)
+      dimension ri(3),v(6)
+      common/nv/nv21,nv22
+      common/trn/br,frac
+      common/states/ mvibe(100), mrote(100), megae(100), ev(100),njj
+      open(82,file='aqas')
+      call splin1
+      call splin2
+      call splin3
+      call splin4
+      write(6,*) "HCl energy levels"
+      write(6,*) "v,    j,     omega, energy(ev)"
+      read(82,*)njj
+      do 1888 i=1,njj
+      read(82,*) mvibe(i),mrote(i),megae(i),ev(i)
+      write(6,*) mvibe(i),mrote(i),megae(i),ev(i)
+1888  continue
+      read(5,*) tetd,frac
+      tet=tetd/180.*3.14159
+      ri(3)=2.4094
+      uh=1.008
+      uc=35.
+      nv21=1
+      nv22=1
+      gam=uc/(uc+uh)
+      gamp=1.-gam
+      srg=gam*ri(3)
+      srgp=gamp*ri(3)
+      do 10 i=1,100
+      br=4.6+(i-1)*.1
+      ri(1)=sqrt(br**2+srg**2-2.*br*srg*cos(tet))
+      ri(2)=sqrt(br**2+srgp**2+2.*br*srgp*cos(tet))
+c      call fpot(ri,v)
+      call surfac(v,ri,3)
+c      write(10,100) br,v(1) ,v(2),v(3)
+  100 format(1x,5f14.7)
+   10 continue
+      end
+      subroutine surfac(v,ri,iref)
+      implicit real*8(a-h,o-z)
+c four surface version of Besley-Knowles potential
+C  + switch to  Dubernet-Hutson and LEPS potentials.
+      dimension ri(3),v(6),ra(3),r(3),scalv(4)
+      dimension de(3),re(3),bet(3)
+      dimension ham(6,6),vec(6,6),eig(6,5)
+      common/nv/nv21,nv22
+      common/trn/br,frac
+      common/rhc/rsm,rbi
+      common/asymp/aa1(4),aa2(4),aa3(4),aa4(4)
+      common/states/ mvibe(100), mrote(100), megae(100), evv(100),njj
+C Factors for scaling the spin-orbit and electrostatic coupling.
+      common/scalfacs/scalflam,scalv
+      data flami/-0.002677/
+C
+C The original BCMR surface has the following parameters:
+C
+      data de/0.1697216,0.0924230,0.1697216/
+      data re/2.409447,3.756848,2.409447/
+      data bet/0.988484,1.059392,0.988484/
+C
+C
+      data bohr/0.529177d0/rs/2.80677d0/
+C
+C switching points 
+      data r1s/2.30d0/gamr/5.0d0/,gamt/0.2d0/
+C
+      pi2=acos(-1.d0)/2.d0
+      pi32=acos(-1.d0)*3.d0/2.d0
+C
+C sorting out the order in which bond distances given.
+c
+      flam=flami*frac
+      go to (100,200,300),iref
+  100 ra(1)=ri(1)
+      ra(2)=ri(3)
+      ra(3)=ri(2)
+      go to 400
+  200 ra(1)=ri(2)
+      ra(2)=ri(1)
+      ra(3)=ri(3)
+      go to 400
+  300 ra(1)=ri(3)
+      ra(2)=ri(2)
+      ra(3)=ri(1)
+ 400  continue
+C
+C converting bond distances to angs and
+C sorting out all the coordinates.
+C
+      do 1 m=1,3
+       r(m)=ra(m)*bohr
+ 1    continue
+      x1=rs-r(1)
+      y1=rs-r(3)
+      g=-r(2)**2+r(1)**2+r(3)**2
+      g2=2.d0*r(1)*r(3)
+      gtt=g/g2
+      if(gtt .gt. 1.d0) then
+       gtt=1.d0
+      else if (gtt .lt. -1.d0) then
+       gtt=-1.d0
+      endif
+      tet=(acos(gtt))*90.d0/pi2
+      phi=(atan(x1/y1))*90.d0/pi2
+C
+C
+C
+C related to bond angle at which  switching to leps occurs.
+C 110.0-20.0=90.0 degrees
+C
+      tetm=110.d0
+C
+C rs is the swing point (in angs). If bond distances larger
+C than this then go straight to the hutson potential.
+C
+      if (r(1).gt.rs.or.r(3).gt.rs) then
+       vs=0.d0
+       vp=0.d0
+       v21ab=0.d0
+       v22ab=0.d0
+       e1=0.0
+       e3=0.0
+       go to 71
+      endif
+C
+C switch to the leps surface at small theta, ie. bond angle 
+C less than 90 degrees.
+C
+      if(tet.ge.(360.d0-tetm+20.d0).or.tet.le.(tetm-20.d0)) then
+       vs=0.d0   
+       vp=0.d0
+       e1=0.0
+       e3=0.0
+       v21ab=0.d0
+       v22ab=0.d0
+       go to 71
+      endif
+C
+C this now is the abinito data
+      fll=sqrt(x1**2+y1**2)
+C
+      call sph11(h11,fll,phi,tet)
+      call sph22(h22,fll,phi,tet)
+      call sph21(h21,fll,phi,tet)
+      call spe3(e3,fll,phi,tet)
+C
+C the off diagonal diabatic potential is given as 1/5*sqrt(6)v_21
+C therefore have to divided h12 by 1/5*sqrt(6) to give v_21
+      v21ab=5.d0*h21/sqrt(6.d0)
+C sigma diabatic state
+      vs=h11
+C pi diabatic state
+      vp=(h22+e3)/2.d0
+C
+C this is the pi-like coupling potential
+      hd=(h22-e3)/2.d0
+C the pi-like coupling potential is given as 1/5*sqrt(6)V_22
+C therefore have to divided hd by 1/5*sqrt(6) to give v_22
+      v22ab=5.d0*hd/sqrt(6.d0)
+C
+   71 continue
+C switching functions.
+C first to hutson for long bonds
+      s1=(1.d0-tanh(gamr*(r(1)-r1s)))/2.d0*
+     >   (1.d0-tanh(gamr*(r(3)-r1s)))/2.d0
+C second to leps for small angles.
+      s2=(1.d0+tanh(gamt*(tet-tetm)))/2.d0*
+     >   (1.d0-tanh(gamt*(tet-(360.d0-tetm))))/2.d0
+C
+C now call the hutson potential.
+C note that this is only defined at fixed hcl bond distance
+C and this is fixed with stuff just below call to leps.
+      call hutson(ra,vsig,vpi,v21,v22)
+C This is the leps surface, a different one for the sigma and
+C pi surfaces.
+      call asurfac(vlsigma,ra,1)
+      call asurfac(vlpi,ra,2)
+c define Morse potential in rectangular region, 
+C using  Angstroms everywhere
+C it switches from the leps parameters for morse
+C to those from the ab-initio potential.
+C those from the diabatic, (aa1,aa2) should
+C be similar to those from the adiabatic (aa4)
+C use diabatic to be consistent with previous work.
+      rhcl=rsm*bohr
+      rhclp=rbi*bohr
+      rea=re(1)*bohr
+      beta=bet(1)/bohr
+      sw=0.5d0*(1.d0-tanh(3.d0*(rhclp-rs)))
+C
+      de1=de(1)+sw*(aa1(4)-de(1))
+      bet1=beta+sw*(abs(aa1(3))-beta)
+      re1=rea+sw*(rs-aa1(2)-rea)
+      vm1=de1*(1.d0-exp(-bet1*(rhcl-re1)))**2
+C
+      de2=de(1)+sw*(aa2(4)-de(1))
+      bet2=beta+sw*(abs(aa2(3))-beta)
+      re2=rea+sw*(rs-aa2(2)-rea)
+      vm2=de2*(1.d0-exp(-bet2*(rhcl-re2)))**2
+C 
+C put in leps surface to vs and vp for small bond angles.
+C assume v21ab and v22ab go to hutson values for small bond angles.
+      vs=s2*vs+(1.d0-s2)*vlsigma
+      vp=s2*vp+(1.d0-s2)*vlpi
+      v21ab=s2*v21ab+(1.d0-s2)*v21
+      v22ab=s2*v22ab+(1.d0-s2)*v22
+C now switch in hutson potential
+      vfsig=s1*vs+(1.d0-s1)*(vsig+vm1)
+      vfpi=s1*vp+(1.d0-s1)*(vpi+vm2)
+C
+C v(1) is v_00
+C
+      v(1)=(vfsig+2.d0*vfpi)/3.d0
+C
+C v(2) is v_20
+C
+      v(2)=5.d0*(vfsig-vfpi)/3.d0
+C
+C v(3) is v_21
+      v(3)=s1*v21ab+v21*(1.d0-s1)
+C
+C v(4) is v_22
+C
+      v(4)=s1*v22ab+v22*(1.d0-s1)
+      v(5)=vfsig
+      v(6)=vfpi
+c now redefine the v's in terms of adiabatic eigenvalues
+      v00=(vfsig+2.*vfpi)/3.
+      v20=5.*(vfsig-vfpi)/3.
+      v21=v(3)*nv21
+      v22=v(4)*nv22
+      pref=sqrt(6.d0)/5.
+      pref2=sqrt(3.d0)/5.
+      pref3=sqrt(2.d0)/5.
+c define 6x6 hamiltonian matrix
+      do 1823 i=1,6
+      do 1823 j=1,6
+ 1823 ham(i,j)=0.
+      ham(1,1)=v00-0.2*v20
+      ham(1,3)=-pref*v22
+      ham(1,5)=-pref2*v21
+      ham(2,2)=v00-0.2*v20-flam
+      ham(2,4)=ham(1,3)
+      ham(2,5)=flam/sqrt(2.)
+      ham(2,6)=ham(1,5)
+      ham(3,3)=ham(2,2)
+      ham(3,5)=-ham(1,5)
+      ham(3,6)=ham(2,5)
+      ham(4,4)=ham(1,1)
+      ham(4,6)=ham(3,5)
+      ham(5,5)=v00+0.4*v20-0.5*flam
+      ham(6,6)=ham(5,5)
+      temp=ham(2,2)+ham(5,5)
+      temp2=2.*flam**2-4.*ham(2,2)*ham(5,5)
+      eigp=0.5*(temp+sqrt(temp**2+temp2))
+      eigm=0.5*(temp-sqrt(temp**2+temp2))
+      write(6,1828) br,sqrt(2.)/3.*abs((vfsig-vfpi)/(1.5*flam))
+c      write(7,1828) br,sqrt(2.)/3.*(vfsig-vfpi)/(eigm-eigp)
+      ev=27.2114
+      write(10,1828) br, ham(2,2)*ev, ham(5,5)*ev
+c      write(10,1828) br,ev*eigp,ev*eigm,ev*ham(1,1)
+ 1828 format(6f12.6)
+      temp=(2*v00+0.2*v20-1.5*flam)
+      temp2=-4.*((v00+0.2*v20)*(v00-1.5*flam) -2./25.*v20**2)
+      eigp=0.5*(temp+sqrt(temp**2+temp2))
+      eigm=0.5*(temp-sqrt(temp**2+temp2))
+      do 1824 i=1,6
+      do 1824 j=i+1,6
+      ham(j,i)=ham(i,j)
+ 1824 continue
+       call hsehld(6,6,ham,vec,eig)
+c sort by eigenvalue
+       do 1829 i=1,6
+       do 1830 j=i+1,6
+       if(eig(i,1).lt.eig(j,1)) go to 1830
+       temp=eig(i,1)
+       eig(i,1)=eig(j,1)
+       eig(j,1)=temp
+       do 1831 k=1,6
+       temp=vec(k,i)
+       vec(k,i)=vec(k,j)
+       vec(k,j)=temp
+ 1831  continue
+ 1830  continue
+ 1829 continue
+      write(6,1101) ev*eig(1,1),ev*eig(3,1),ev*eig(5,1)
+      do i=1,6
+      write(6,1101) vec(i,1),vec(i,3),vec(i,5)
+ 1101 format(1x,3f15.5)
+      enddo
+      write(11,1828) br,ev*(v00+0.2*v20),ev*(v00-1.5*flam),
+     x ev*(-1.414*v20/5.)
+c rework hamiltonian
+      do 2823 j=1,6
+ 2823 ham(i,j)=0.
+      ham(1,1)=v00-0.2*v20
+      ham(1,2)=-pref3*v21
+      ham(1,3)=-pref3*v22
+      ham(1,5)=0.2*v21
+      ham(1,6)=0.4*v22
+      ham(2,2)=v00+0.2*v20
+      ham(2,4)=ham(1,3)
+      ham(2,5)=-pref3*v20
+      ham(2,6)=-pref2*v21
+      ham(3,3)=ham(2,2)
+      ham(3,4)=-ham(1,2)
+      ham(3,5)=ham(2,6)
+      ham(3,6)=-ham(2,5)
+      ham(4,4)=ham(1,1)
+      ham(4,5)=-ham(1,6)
+      ham(4,6)=ham(1,5)
+      ham(5,5)=v00-1.5*flam
+      ham(6,6)=ham(5,5)
+      do 2824 i=1,6
+      do 2824 j=i+1,6
+      ham(j,i)=ham(i,j)
+ 2824 continue
+      write(20,1828) br,evv(10)+ev*ham(2,2),evv(6)+ev*ham(5,5)
+c      write(12,1828) br
+c      do i=1,6
+c      write(12,1828) (ev*ham(i,j),j=1,6)
+c      enddo
+c both sets of eigp, eigm are the same
+
+c      do 1825 i=1,6
+c      write(6,1826) (ham(i,j),j=1,6)
+c 1825 continue
+c 1826 format(1x,'ham',6f10.5)
+       call hsehld(6,6,ham,vec,eig)
+c sort by eigenvalue
+       do 2829 i=1,6
+       do 2830 j=i+1,6
+       if(eig(i,1).lt.eig(j,1)) go to 2830
+       temp=eig(i,1)
+       eig(i,1)=eig(j,1)
+       eig(j,1)=temp
+       do 2831 k=1,6
+       temp=vec(k,i)
+       vec(k,i)=vec(k,j)
+       vec(k,j)=temp
+ 2831  continue
+ 2830  continue
+ 2829 continue
+      write(6,*) eig(1,1),eig(3,1),eig(5,1)
+      v(1)=eig(1,1)
+      v(2)=eig(3,1)
+      v(3)=eig(5,1)
+      v(4)=vfsig
+      v(5)=vfpi
+C AJD  scaling of the potential
+C
+C       do iscalv=1,4
+C        v(iscalv)=v(iscalv)*scalv(iscalv)
+C       end do
+      return
+      end
+      subroutine hsehld(nn,nsiz,a,vec,eig)
+      implicit real*8(a-h,o-z)
+c         nn= size of matrix
+c         a = matrix (only lower triangle is used + this is destroyed)
+c         eig = returned eigenvalues in algebraic descending order
+c         vec = returned eigenvectors in columns
+c         ind = error return indicator
+c              0 for normal return
+c              1 sum of eigenvalues not equal to trace
+c              2 sum of eigenvalues squared not equal to norm
+c              3 both of these errors
+c     the following dimensioned variables are equivalenced
+      dimension a(nsiz,nsiz),vec(nsiz,nsiz)
+      dimension eig(nsiz,5)
+      equivalence (k,rk),(nv,rnv),(np,rnp),(lv,rlv)
+      if(nsiz.gt.80) go to 565
+      n = iabs(nn)
+      nn1 = n - 1
+      do 1 i = 1, nn1
+      ii = i + 1
+      do 1 j = ii,n
+  1   a(j,i) = a(i,j)
+c     reset error return indicator
+      ind=0
+      if(n .eq. 0) go to 560
+      n1=n-1
+      n2=n-2
+c     compute the trace and euclidian norm of the input matrix
+c     later check against sum and sum of squares of eigenvalues
+      enorm=0.
+      trace=0.
+      do 110 j=1,n
+      do 100 i=j,n
+  100 enorm=enorm+a(i,j)**2
+      trace=trace+a(j,j)
+  110 enorm=enorm-.5*a(j,j)**2
+      enorm=enorm+enorm
+      eig(1,3)=a(1,1)
+      if(n2) 280,270,120
+  120 do 260 nr=1,n2
+      b=a(nr+1,nr)
+      s=0.
+      do 130 i=nr,n2
+  130 s=s+a(i+2,nr)**2
+c     prepare for possible bypass of transformation
+      a(nr+1,nr)=0.
+      if(s) 250,250,140
+  140 s=s+b*b
+      sgn=+1.
+      if(b) 150,160,160
+  150 sgn=-1.
+  160 sqrts=sqrt(s)
+      d=sgn/(sqrts+sqrts)
+      temp=sqrt(.5+b*d)
+      eig(nr,5)=temp
+      a(nr+1,nr)=temp
+      b=-sgn*sqrts
+c     d is factor of proportionality. now compute and save w vector.
+      d=d/temp
+c     extra singly subscripted w vector used for speed.
+      do 170 i=nr,n2
+      temp=d*a(i+2,nr)
+      eig(i+1,5)=temp
+  170 a(i+2,nr)=temp
+c     premultiply vector w by matrix a to obtain p vector.
+c     simultaneously accumulate dot product wp,(the scalar k)
+      wtaw=0.
+      do 220 i=nr,n1
+      sum=0.
+      do 180 j=nr,i
+  180 sum=sum+a(i+1,j+1)*eig(j,5)
+      i1=i+1
+      if(n1-i1) 210,190,190
+  190 do 200 j=i1,n1
+  200 sum=sum+a(j+1,i+1)*eig(j,5)
+  210 eig(i,2)=sum
+  220 wtaw=wtaw+sum*eig(i,5)
+c     p vector and scalar k now stored. next compute q vector
+      do 230 i=nr,n1
+  230 eig(i,2)=eig(i,2)-wtaw*eig(i,5)
+c     now form pap matrix, required part
+      do 240 j=nr,n1
+      qj=eig(j,2)
+      wj=eig(j,5)
+      do 240 i=j,n1
+  240 a(i+1,j+1)=a(i+1,j+1)-2.*(eig(i,5)*qj+wj*eig(i,2))
+  250 eig(nr,2)=b
+      eig(nr,4)=b**2
+  260 eig(nr+1,3)=a(nr+1,nr+1)
+  270 b=a(n,n-1)
+      eig(n-1,2)=b
+      eig(n-1,4)=b**2
+      eig(n,3)=a(n,n)
+  280 eig(n,4)=0.
+c     adjoin an identity matrix to be postmultiplied by rotations.
+      do 300 i=1,n
+      do 290 j=1,n
+  290 vec(i,j)=0.
+  300 vec(i,i)=1.
+      m=n
+      sum=0.
+      npas=1
+      go to 400
+  310 sum=sum+shift
+      cosa=1.
+      g=eig(1,3)-shift
+      pp=g
+      ppbs=pp*pp+eig(1,4)
+      ppbr=sqrt(ppbs)
+      do 370 j=1,m
+      cosap=cosa
+      if(ppbs .ne. 0.) go to 320
+      sina=0.
+      sina2=0.
+      cosa=1.
+      go to 350
+  320 sina=eig(j,2)/ppbr
+c     the following statement can be added to get rid of underflows
+      if(abs(sina) .lt. 1.0e-25)sina=0.0
+c     the library version does not have this statement      al chang 5/2
+      sina2=eig(j,4)/ppbs
+      cosa=pp/ppbr
+c     postmultiply identity by p-transpose matrix
+      nt=j+npas
+      if(nt .ge. n) nt=n
+  330 do 340 i=1,nt
+      temp=cosa*vec(i,j)+sina*vec(i,j+1)
+c     the following statement can be added to get rid of underflows
+      if(abs(temp) .lt. 1.0e-35) temp=0.0
+c     the library version does not have this statement      al chang 5/2
+      vec(i,j+1)=-sina*vec(i,j)+cosa*vec(i,j+1)
+  340 vec(i,j)=temp
+  350 dia=eig(j+1,3)-shift
+      u=sina2*(g+dia)
+      eig(j,3)=g+u
+      g=dia-u
+      pp=dia*cosa-sina*cosap*eig(j,2)
+      if(j .ne. m) go to 360
+      eig(j,2)=sina*pp
+      eig(j,4)=sina2*pp**2
+      go to 380
+  360 ppbs=pp**2+eig(j+1,4)
+      ppbr=sqrt(ppbs)
+      eig(j,2)=sina*ppbr
+  370 eig(j,4)=sina2*ppbs
+  380 eig(m+1,3)=g
+c     test for convergence of last diagonal element
+      npas=npas+1
+      if(eig(m,4).gt.1.e-21) go to 410
+  390 eig(m+1,1)=eig(m+1,3)+sum
+  400 eig(m,2)=0.
+      eig(m,4)=0.
+      m=m-1
+      if(m .eq. 0) go to 430
+      if(eig(m,4).le.1.e-21) go to 390
+c     take root of corner 2 by 2 nearest to lower diagonal in value
+c     as estimate of eigenvalue to use for shift
+  410 a2=eig(m+1,3)
+      r2=.5*a2
+      r1=.5*eig(m,3)
+      r12=r1+r2
+      dif=r1-r2
+      temp=sqrt(dif**2+eig(m,4))
+      r1=r12+temp
+      r2=r12-temp
+      dif=abs(a2-r1)-abs(a2-r2)
+      if(dif .lt. 0.) go to 420
+      shift=r2
+      go to 310
+  420 shift=r1
+      go to 310
+  430 eig(1,1)=eig(1,3)+sum
+  500 esum=0.
+      essq=0.
+c     back transform the vectors of the triple diagonal matrix
+      do 550 nrr=1,n
+      k=n1
+  510 k=k-1
+      if(k .le. 0) go to 540
+      sum=0.
+      do 520 i=k,n1
+  520 sum=sum+vec(i+1,nrr)*a(i+1,k)
+      sum=sum+sum
+      do 530 i=k,n1
+  530 vec(i+1,nrr)=vec(i+1,nrr)-sum*a(i+1,k)
+      go to 510
+  540 esum=esum+eig(nrr,1)
+  550 essq=essq+eig(nrr,1)**2
+      temp=abs(128.*trace)
+      if((abs(trace-esum)+temp)-temp .ne. 0.) ind=ind+1
+      temp=256.*enorm
+      if((abs(enorm-essq)+temp)-temp .ne. 0.) ind=ind+2
+  555 continue
+  560 return
+  565 write(6,600)
+  600 format(1x,50hmessage from hsehld routine array size exceeds 240)
+      stop
+      end
+

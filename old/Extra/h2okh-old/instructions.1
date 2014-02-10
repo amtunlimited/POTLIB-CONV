@@ -1,0 +1,28 @@
+Step by step conversion of native routine to potlib-compliant routine
+
+Let "native.f" stand for the name of the fortran file containing the
+native routine
+
+I. Set up test case
+
+1. Write nativetest.f which reads a geometry nativetest.datstd, 
+   calls native.f, gets
+   an energy, and lists the geometry and energy in nativetest.outstd.
+   The ability to reproduce this calculation will be the test that
+   subsequent potlib compliance did not alter the output of native.f
+
+II. Create the template
+
+1. Create executable modify1.com with 4 lines of code
+   1: modify1.x <native.f >junk1.f
+   2: ifort nativetest.f junk1.f ../../Section_1/Utilities/utility.f -o junk1.x
+   3: junk1.x <nativetest.datstd >junk1.out
+   4: diff junk1.out nativetest.outstd
+
+   junk1.f is the first step in the conversion.
+   junk1.x is executable version of the nativetest with junk1.f as subroutine
+   junk1.out is the output of running junk and it should be identical to 
+      nativetest.outstd
+
+2. Follow instructions for PTPACM and modify junk.f accordingly.  Test at
+   each modification to recover mativetest.std

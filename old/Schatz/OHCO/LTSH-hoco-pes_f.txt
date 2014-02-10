@@ -1,0 +1,1245 @@
+cm
+cm  This is a full-dimensional (6D) HOCO potential energy surface combining 
+cm  the long-range Van der Waals interaction (Harding ab initio PES) with
+cm  an updated version of the full-dimensional PES of Bradley and Schatz.  
+cm  Due to limitations of the VdW surface, this surface is limited to a 
+cm  20 au separation of diatomics. 
+cm
+cm  Note:  For this surface to be complete, it must be combined with the
+cm  subroutine spl3de, which is the 3-dimensional spline fit of the
+cm  ab initio points describing the entrance channel region.  Two spl3de
+cm  subroutines are available, one for the 2A' electronic state and one 
+cm  for the 2A'' state.  The two subroutines can be found in separate
+cm  files:  Harding-2Ap-hoco.f and Harding-2App-hoco.f.
+cm
+cm  Final Version, August 2002 (Matthew Lakin) 
+cm
+      subroutine hocopes(r1,r2,r3,r4,r5,r6,v)
+      implicit double precision (a-h,o-z)
+cm
+cm  The coordinates are defined as follows (in the main diatom+diatom
+cm  code, this is ho+co'<->h+oco', but could also be ho'+co<->h+o'co):
+cm    r1=h-c
+cm    r2=h-o
+cm    r3=h-o'
+cm    r4=c-o
+cm    r5=c-o'
+cm    r6=o-o'
+cm
+cm  To combine the two surfaces (surfac which is the Harding surface and
+cm  srffit12 which is the Bradley/Schatz), a switching function has been
+cm  used.  The switching function is mainly based on the separation
+cm  between the centers of mass of the two diatomics, but has an
+cm  an additional component insuring that in the product region, H+CO2,
+cm  the combined surfaces reflects the Bradley/Schatz data.
+cm  Use of the OH bond length is redundant in the reagent region,
+cm  but insures that there at least has to be a diatomic OH for
+cm  the Harding potential to be used. 
+cm
+cm  Parameters for switching function:
+      data gammar/9.0/,rstar/4.4/
+      data gammaoh/9.0/,r2star/2.6/
+cm
+      data tolerance/0.001/
+cm
+cm  The OH distance for the switch is whatever is smallest 
+      IF(r3.lt.r2) THEN
+        r2prime=r3
+      ELSE
+        r2prime=r2
+      ENDIF
+cm
+cm  Determine parameters for switch (R) and for Harding 
+cm  surface call (rCO,rOH,R,tCO,tOH,cosD) using coortrans:
+      call coortrans(r1,r2,r3,r4,r5,r6,R,tCO,tOH,rCO,rOH,cosD)
+cm
+cm  Switch:
+      switch=0.5*(1.0+tanh(gammar*(R-rstar)))*
+     x0.5*(1.0-tanh(gammaoh*(r2prime-r2star)))
+cm
+cm  If the switch is greater or less than some tolerance, then just
+cm  calculate the potential with the appropriate surface, else use both:
+      IF(switch.gt.(1.-tolerance)) THEN 
+        call surfac(rCO,rOH,R,tCO,tOH,cosD,v)
+      ELSE 
+        IF(switch.lt.tolerance) THEN 
+cm  replace old Bradley/Schatz with new PES: 
+!         call srffit12(r1,r2,r3,r4,r5,r6,v)
+          call sf12mjl2(r1,r2,r3,r4,r5,r6,v)
+cm
+        ELSE
+          call surfac(rCO,rOH,R,tCO,tOH,cosD,vH)
+cm  replace old Bradley/Schatz with new PES: 
+!         call srffit12(r1,r2,r3,r4,r5,r6,vBS)
+          call sf12mjl2(r1,r2,r3,r4,r5,r6,vBS)
+cm
+          v=switch*vH+(1-switch)*vBS
+        ENDIF
+      ENDIF
+cm
+cm  Note:  The many body expansion surface of Bradley/Schatz has complete 
+cm  equivalency for the two oxygen atoms with a smooth switch, while the 
+cm  Harding surface achieves equivalency mainly through the subroutine 
+cm  coortrans which checks to see which set of distances looks more like 
+cm  two diatomics.  Note that this way of achieving equivalency might be 
+cm  ill-behaved in regions where the species aren't separated clearly into 
+cm  two diatomics.
+cm
+      return
+      end
+cm
+cm
+      subroutine coortrans(r1m,r2m,r3m,r4m,r5m,r6m,r,tco,toh,
+     xrco,roh,cosd)
+      implicit real*8 (a-h,o-z)
+cm =============================================================================
+cm  This subroutine transforms from six interatomic distances r1...r6 to
+cm  R, tco, toh, and the dihedral angle.  The transformation is performed using
+cm  dot products of vectors (take from the Kudla code) as described below.
+cm =============================================================================
+cm
+cm  it is assumed that the main code defines coordinates as follows 
+cm  (ho+co'<->h+oco' or ho'+co<->h+o'co):
+cm    r1=h-c
+cm    r2=h-o
+cm    r3=h-o'
+cm    r4=c-o
+cm    r5=c-o'
+cm    r6=o-o'
+cm  The main code coordinates r1...r6 are renamed r1m...r6m here.
+cm
+cm  Within this subroutine, the interatomic coordinates are defined as:
+c   r1=CH distance in bohr
+c   r2=OH distance between OH and CO
+c   r3=OH distance in OH radical
+c   r4=CO distance in CO
+c   r5=CO distance between OH and CO
+c   r6=OO distance
+cm
+cm  The two possible sets of diatomics are ho+co' and ho'+co.  If r3m<r2m and
+cm  r4m<r5m, then the diatomics are assumed to be ho'+co, else the diatomics
+cm  are taken to be ho+co' (the more typical arrangement, by convention from
+cm  the main code).  This makes the two oxygens equivalent.  Note, however,
+cm  that the exchange of coordinates is not the typical smooth switch, but
+cm  this should not matter as the Harding surface does not contribute to the
+cm  potential in the region where any switch would take place (for example,
+cm  if ho+co'<->hoco'<->oco'h<->oc+o'h, the exchange of coordinates takes
+cm  place in the region where the Bradley/Schatz PES dominates).  MJL 6/01
+cm
+      IF((r3m.lt.r2m).AND.(r4m.lt.r5m)) THEN
+        r1=r1m
+        r2=r2m
+        r3=r3m
+        r4=r4m
+        r5=r5m
+        r6=r6m
+      ELSE
+        r1=r1m
+        r2=r3m
+        r3=r2m
+        r4=r5m
+        r5=r4m
+        r6=r6m
+      ENDIF
+cm
+cm =============================================================================
+cm
+cm       C
+cm       | theta CO       O
+cm       M----------------m
+cm       |       theta OH |
+cm       O'               |
+cm                        H
+cm
+cm   r = distance between center of mass of CO and OH (au)
+cm   tco= angle between R and CO (radians)
+cm   toh= angle between R and OH (radians)
+cm   D dihedral angle between normal to CO-R plane and the OH-R plane
+cm
+cm  The conversion from r1...r6 to tco,toh,R, and cosD is taken from
+cm  Kudla (MJL 6/01):
+cm
+      data alf,bet,gam,del/0.57135,0.42865,0.059274,0.94073/
+cm  alpha is uO/(uC+uO) where uO is the mass of an oxygen atom
+cm  beta is uC/(uC+uO)
+cm  gamma is uH/(uH+uO)
+cm  delta is uO/(uH+uO)
+cm
+cm  Determine the dot products:
+      dp35=0.5*(r1**2-r3**2-r5**2)
+      dp23=-0.5*(r6**2-r2**2-r3**2)
+      dp45=0.5*(r6**2-r4**2-r5**2)
+c     dp34=dp23-r3**2-dp35
+      dp34=0.5*(r2**2-r3**2-r4**2-r5**2)-dp45-dp35
+cm
+      r=(alf*r4)**2+r5**2+(gam*r3)**2+2*alf*dp45+
+     x 2.*alf*gam*dp34+2.*gam*dp35
+      r=sqrt(abs(r))
+cm
+      dpr4r=alf*r4**2+dp45+gam*dp34
+      dpr3r=alf*dp34+dp35+gam*r3**2
+      tco=(dpr4r/(r4*r))
+      if(tco.gt.1.) tco=1.
+      if(tco.lt.-1.) tco=-1.
+      tco=acos(tco)
+      toh=(-dpr3r/(r3*r))
+      if(toh.gt.1.) toh=1.
+      if(toh.lt.-1.)toh=-1.
+      toh=acos(toh)
+      pcp=dpr3r*dpr4r-r**2*dp34
+      cosd=pcp/(r**2*r3*r4*sin(tco)*sin(toh))
+cm  Round cosd is greater than 1 or less than -1, then round:
+      if(cosd .gt. 1.0) cosd=1.
+      if(cosd .lt. -1.0) cosd=-1.
+cm
+cm  Finally, output values of rco and roh used in this procedure:
+      rco=r4
+      roh=r3
+cm
+      return
+      end
+cm  End of subroutine coortrans.
+cm 
+cm
+      subroutine surfac(rco,roh,r,tco,toh,cosd,v)
+      implicit real*8 (a-h,o-z)
+cm =============================================================================
+cm  This is a six-dimensional HO+CO PES incorporating the most recent 
+cm  3-dimensional ab initio surface of Larry Harding.  The Harding potential is
+cm  called using the three coordinates R, tco, and toh given two possible 
+cm  dihedral angles, D=0 or pi (using subroutine spl3de for either the 2a' or 
+cm  2a" PES).  The VdW potential at a given D is determined by assuming a cosine
+cm  function change within the range D=0 to pi.  Finally, the Harding potential
+cm  is added to the potential from two CO and OH Morse oscillators to give the 
+cm  full, six-dimensional potential (MJL 6/01).
+cm
+cm  A good reference for the old Harding surface is
+cm    Kudla et al., J. Chem. Phys. 96, 7465-7473, 1992.
+cm =============================================================================
+cm
+cm    definitions from Harding and Koures (for dihedral angle = 0 or pi,
+cm    i.e. in plane):
+cm
+cm       C                O
+cm       | theta CO       |
+cm       M----------------m
+cm       |       theta OH |
+cm       O                H
+cm
+cm    the m's above denote the centers of mass of the two diatomics
+cm
+cm    xi    =  distance between CO and OH centers of mass  (au)
+cm          =  r(m-M )        (au)          3.3 <  xi   <  20
+cm    yi    =  theta CO (degrees)
+cm          =  C-M-m Angle  (degrees)      -180 <  yi   < 180
+cm    zi    =  theta OH (degrees)
+cm          =  H-m-M Angle  (degrees)      -180 <  zi   < 180
+cm
+cm    for the Harding potential, r(CO) and r(OH) are fixed as follows:
+cm
+cm          r(CO) = 2.13205
+cm          r(OH) = 1.83239
+cm
+cm  The input parameters are:
+cm   R = distance between center of mass of CO and OH (au) = xi
+cm   tco= angle between R and CO (radians) => yi (degrees)
+cm   toh= angle between R and OH (radians) => zi (degrees)
+cm   D dihedral angle between normal to CO-R plane and the OH-R plane
+cm
+cm =============================================================================
+cm
+cm  The conversion from 3 to six dimensions is taken from Kudla et al.:
+c     V = (1+cosD)/2*vmap(D=0)+(1-cosD)/2*vmap(D=pi)
+c         +Morse oscillators in CO and OH distances
+cm  Morse oscillator parameters:
+      data deco,reco,bco/4.12550E-01,2.13205E+00,1.21690E+00/
+      data deoh,reoh,boh/1.69820E-01,1.83239E+00,1.21510E+00/
+cm
+cm  Define parameters for subroutine spl3de:
+      xi=r
+cm  angle tco in Larry's code is opposite of that calculated by
+cm  Kathy's code in coortrans (MJL 11/28/01): 
+!     yi=(180/3.14159)*tco
+      yi=-1.*(180/3.14159)*tco
+cm
+      zi=(180/3.14159)*toh
+cm
+cm  The spl3de surface takes input in Bohr and degrees, and outputs
+cm  potential energy in kcal/mol relative to OH+CO.
+cm
+cm  Now, either the 2a' or 2a" 3-dimensional VdW HOCO PES is called
+cm  as the subroutine spl3de.  The code for subroutine spl3de needs
+cm  to be included with this code (MJL 6/01):
+      call spl3de(xi,yi,zi,vzero,DFX,DFY,DFZ)
+cm
+cm  Now call the same potential with the dihedral angle = pi
+cm  (effectively flipping the CO molecule):
+      yi=-1.*yi 
+      call spl3de(xi,yi,zi,vpi,DFX,DFY,DFZ)
+cm
+cm  Note:  the Harding VdW PES takes the separated OH+CO to be at an
+cm  energy of zero.  The Bradley and Schatz surface has OH+CO at
+cm  -0.58236 Hartree, so this factor is added to the VdW value
+cm  (MJL, 6/01).
+      vzero=vzero/627.510-0.5823617  
+      vpi=vpi/627.510-0.5823617
+cm
+cm  Finally, add the VdW potential at the actual dihedral angle to
+cm  the potential of the Morse oscillators CO and OH and return
+cm  the potential as "v":
+cm  Note: check to make sure that Morse oscillators are giving energy
+cm  in Hartree (MJL 7/01). 
+      pot=0.5*(vzero*(1.+cosd)+vpi*(1.-cosd))
+     x +deco*(1.-exp(-bco*(rco-reco)))**2
+     x +deoh*(1.-exp(-boh*(roh-reoh)))**2
+cm
+cm  Set v to the output value:
+      v=pot
+cm
+      return
+      end
+cm  End of subroutine surfac. 
+cm
+cm  The subroutine srffit12 is the original subroutine for the Bradley
+cm  Schatz PES.  This subroutine is left in the code, in case it would be 
+cm  desirable to use it in any way, but it is not currently being used.
+cm  The LTSH PES uses a modified version of this subroutine, sf12mjl2, to
+cm  calculate the many body expansion potential.
+cm
+      subroutine srffit12(r1,r2,r3,r4,r5,r6i,v)
+      implicit double precision(a-h,o-z)
+cm
+c ==============================================================================
+cm  This is the Bradley/Schatz version of the HCO2 potential.
+cm
+c   The following are a few test values of the energy for selected
+c   geometries:
+c
+c             r1     r2     r3     r4     r5     r6
+c   OH+CO     30.0   1.8322 30.0   30.0   2.1316 30.0   E=-0.5823617182999414
+c   H+CO2     30.0   30.0   30.0   2.1926 2.1926 4.3853 E=-0.6179051110173607
+c   transHOCO 4.2289 1.9511 6.2259 2.8018 2.2008 4.4888 E=-0.6413279523447313
+c   cisHOCO   4.2301 1.9511 5.2394 2.8017 2.2009 4.4835 E=-0.6378504533514183
+c   HCO2      2.0944 3.8533 3.8527 2.3978 2.3978 4.2358 E=-0.6233397577144718
+c   H-CO2sp   3.8164 4.7391 4.7385 2.2737 2.2737 4.4911 E=-0.5976650473123367
+c
+c   Citation for this function is K. S. Bradley and G. C. Schatz,
+c   J. Chem. Phys., 106, 8464 (1997)
+c
+c ==============================================================================
+cm
+cm  It is assumed that the main code calls the subroutine as:
+cm    call srffit12(r1,r2,r3,r4,r5,r6,v)
+cm  using the same definition of r1...r6 as defined in this subroutine.
+cm
+c ==============================================================================
+cm
+cm  "srffit12" is the 12th version of the HOCO surface fit.
+cm  The 12th version makes minor adjustments to the 11th version,
+cm  "srffit11", which is the bulk of the code.  First, the six
+cm  interatomic coordinates r1...r6 are adjusted to match the
+cm  saddle point and minima geometries of the 11th fit (which
+cm  were slightly off), then srffit11 is called, and finally
+cm  the energies that are returned are adjusted slightly (by
+cm  adding Guassians at key geometries) to account for the most
+cm  recent data (MJL 6/01).
+cm
+cm  The coordinates are defined as follows (ho+co'<->h+oco'):
+c     r1=h-c
+c     r2=h-o
+c     r3=h-o'
+c     r4=c-o
+c     r5=c-o'
+c     r6=o-o'
+cm
+c   KSB-Modified Surface for HOCO.  4/18/96
+cm
+      data pi/3.141592654/
+      data epp/.001/,gam/10./
+      common/ipes/ipes
+cm
+c
+      s2=exp(-gam*(r6i-abs(r4-r5)))
+      s3=exp(gam*(r6i-r4-r5))
+      r6=r6i+epp*s2-epp*s3
+      arg=(r4**2+r5**2-r6**2)/(2.*r4*r5)
+c      if(arg.gt.1.) arg=1.
+c      if(arg.lt.-1.) arg=-1.
+      a=acos(arg)
+      arg=(r1**2+r5**2-r3**2)/(2.*r1*r5)
+      if(arg.gt.1.) arg=1.
+      if(arg.lt.-1.) arg=-1.
+      b=acos(arg)
+      arg=(r1**2+r4**2-r2**2)/(2.*r1*r4)
+      if(arg.gt.1.) arg=1.
+      if(arg.lt.-1.) arg=-1.
+      g=acos(arg)
+      s2=exp(-gam*(r6i-abs(r2-r3)))
+      s3=exp(gam*(r6i-r2-r3))
+      r6=r6i+epp*s2-epp*s3
+      arg=(r2**2+r3**2-r6**2)/(2.*r2*r3)
+c      if(arg.gt.1.) arg=1.
+c      if(arg.lt.-1.) arg=-1.
+      d=acos(arg)
+      a0=pi*(1.-0.294*exp(-0.6*(r2-1.951)**2)*exp(-0.6*(r1-4.230)**2))
+     &*(1.-0.294*exp(-0.6*(r3-1.951)**2)*exp(-0.6*(r1-4.230)**2))
+      r6a=sqrt(r4**2+r5**2+2.*r4*r5*cos(a-a0))
+      sinaa0=sin(a-a0)
+      sina0=sin(a0)
+      sina=sin(a)
+      sind=sin(d)
+c      if(abs(sina).lt..001) sina=.001
+c      if(abs(sind).lt..001) sind=.001
+      damp=tanh(10.*a)*tanh(10.*d)
+      damp2=1.0-abs((tanh(6.0*(r4-3.0))-1.0)/2.0)
+      damp2p=1.0-abs((tanh(6.0*(r5-3.0))-1.0)/2.0)
+      cosa=cos(a)
+      cosb=cos(b)
+      cosg=cos(g)
+      cosa35=(r3**2+r5**2-r1**2)/(2.*r3*r5)
+      cosa24=(r2**2+r4**2-r1**2)/(2.*r2*r4)
+      cosa25=(r1*cosb-r4*cosa)/r2
+      cosa34=(r1*cosg-r5*cosa)/r3
+      cosdi=(cosa35*cosa24-cosa25*cosa34)/(sina*sind)
+      if(cosdi.gt.1.) cosdi=1.
+      if(cosdi.lt.-1.) cosdi=-1.
+      di=acos(cosdi)
+      sindi=sin(di)
+      r2a=(r1**2+r4**2*(sinaa0**2+sina0**2+2.*sinaa0*sina0
+     &*cosa)/sina**2+2.*r1*r4*(sinaa0*cosg+sina0*cosb)/sina)
+      r3a=(r1**2+r5**2*(sinaa0**2+sina0**2+2.*sinaa0*sina0
+     &*cosa)/sina**2+2.*r1*r5*(sinaa0*cosb+sina0*cosg)/sina)
+      if(r2a.lt.0.) r2a=0.
+      if(r3a.lt.0.) r3a=0.
+      r2a=sqrt(r2a)
+      r3a=sqrt(r3a)
+      r2b=r2a*(1.+tanh(10.*(r2-r3)))/2.+r2*(1.+tanh(10.*(r3-r2)))/2.
+      r3b=r3a*(1.+tanh(10.*(r3-r2)))/2.+r3*(1.+tanh(10.*(r2-r3)))/2.
+      call srffit11(r1,r2b,r3b,r4,r5,r6a,va)
+         vdi=exp(-1.0*(r2-1.951)**2)*exp(-1.0*(r1-4.230)**2)
+     &*(0.01*(1.-cosdi**2)+0.00175*(1.-cosdi))
+     &+exp(-1.0*(r3-1.951)**2)*exp(-1.0*(r1-4.230)**2)
+     &*(0.01*(1.-cosdi**2)+0.00175*(1.-cosdi))
+c KSB 04/16/96 Modifications here.
+      if(r2.le.r3) then
+c
+c this is to fix the low frequencies in ho-copl
+c  centered on cis-transHOCOsp
+      vdi2=0.02000*(1.0-cosdi**2)*
+     &exp(-0.001*(r1-4.2297)**2-0.001*(r2-1.9510)**2
+     &-0.001*(r3-5.8532)**2-0.001*(r4-2.8016)**4
+     &-0.001*(r5-2.2009)**4-0.001*(r6-4.4868)**2)
+c
+c this is for adjusting the ho-copl barrier
+c   centered on ho-copl
+      vdi3=0.00217*exp(-(r1-5.683)**2-(r2-1.808)**2
+     &-(r3-7.828)**2-(r4-4.749)**2
+     &-(r5-2.146)**2-(r6-6.845)**2)
+     &*(1.0-cosdi**2)
+c
+c   centered on h-co2sp
+      vdi4=0.00217*exp(-(r1-3.8328)**2-(r2-4.7470)**2
+     &-(r3-4.7467)**2-(r4-2.2718)**2-(r5-2.2718)**2
+     &-(r6-4.4893)**2)*(cosdi**2)
+c
+c   centered on isosp
+      vdi5=0.00217*exp(-(r1-2.5158)**2-(r2-2.3620)**2
+     &-(r3-3.7690)**2-(r4-3.1044)**2-(r5-2.2358)**2
+     &-(r6-5.1981)**2)*(cosdi**2)
+c
+c   centered on hco2min
+      vdi6=0.00268*exp(-(r1-2.0946)**2-(r2-3.8528)**2
+     &-(r3-3.8528)**2-(r4-2.3979)**2-(r5-2.3979)**2
+     &-(r6-4.2366)**2)*(cosdi**2)
+c
+c   centered on ctsp
+      vdi7=0.015936*exp(-(r1-4.2297)**2-(r2-1.9510)**2
+     &-(r3-5.8532)**2-(r4-2.8016)**2-(r5-2.2009)**2
+     &-(r6-4.4868)**2)*(1.0-cosdi**2)
+c
+      v=va+vdi*damp+vdi2*damp2+vdi3+vdi4+vdi5+vdi6+vdi7
+c
+      elseif(r3.lt.r2) then
+c
+c vdi2p is vdi2 for o & o' equivalence
+      vdi2p=0.02000*(1.0-cosdi**2)*
+     &exp(-0.001*(r1-4.2297)**2-0.001*(r3-1.9510)**2
+     &-0.001*(r2-5.8532)**2-0.001*(r5-2.8016)**4
+     &-0.001*(r4-2.2009)**4-0.001*(r6-4.4868)**2)
+c
+c vdi3p is vdi3 for o & o' equivalence
+      vdi3p=0.00217*exp(-(r1-5.683)**2-(r3-1.808)**2
+     &-(r2-7.828)**2-(r5-4.749)**2
+     &-(r4-2.146)**2-(r6-6.845)**2)
+     &*(1.0-cosdi**2)
+c
+c vdi4p is vdi4 for o & o' equivalence
+      vdi4p=0.00217*exp(-(r1-3.8328)**2-(r3-4.7470)**2
+     &-(r2-4.7467)**2-(r5-2.2718)**2-(r4-2.2718)**2
+     &-(r6-4.4893)**2)*(cosdi**2)
+c
+c vdi5p is vdi5 for o & o' equivalence
+      vdi5p=0.00217*exp(-(r1-2.5158)**2-(r3-2.3620)**2
+     &-(r2-3.7690)**2-(r5-3.1044)**2-(r4-2.2358)**2
+     &-(r6-5.1981)**2)*(cosdi**2)
+c
+c vdi6p is vdi6 for o & o' equivalence
+      vdi6p=0.00268*exp(-(r1-2.0946)**2-(r2-3.8528)**2
+     &-(r3-3.8528)**2-(r4-2.3979)**2-(r5-2.3979)**2
+     &-(r6-4.2366)**2)*(cosdi**2)
+c
+c vdi7p is vid7 for o & o' equivalence
+      vdi7p=0.015936*exp(-(r1-4.2297)**2-(r3-1.9510)**2
+     &-(r2-5.8532)**2-(r5-2.8016)**2-(r4-2.2009)**2
+     &-(r6-4.4868)**2)*(1.0-cosdi**2)
+c
+      v=va+vdi*damp+vdi2p*damp2p+vdi3p+vdi4p+vdi5p+vdi6p+vdi7p
+      endif
+c      v=va+vdi*damp
+      return
+      end
+cm
+cm
+      subroutine sf12mjl2(r1,r2,r3,r4,r5,r6i,v)
+cm
+cm  subroutine srffit12mjl2 is a modification on srffit12, where the energies
+cm  are changed to the more up-to-date numbers, and the instabilities of
+cm  the surface have been minimized by removing all references to cosdi in the
+cm  Guassian terms;  note that the geometry restrictions at the barriers may
+cm  not be as tight as for srffit12 which has cosdi to restrict geometries to
+cm  either within or out of the plane.
+cm
+      implicit double precision(a-h,o-z)
+cm
+cm  This is a new version of the Bradley/Schatz surface, which eliminates use
+cm  of cosdi in the energy terms (thus improving the stability of the PES) and
+cm  updates the energies of the minima and saddle points using the Duncan and
+cm  Miller values (and the Yu and Muckerman energy for the H-CO2 minimum).
+cm  Energies for select saddle points and minima are as follows:
+cm                                                                        v(kcal/mol) 
+cm                 rab     rac     rad     rbc     rbd     rcd  v(Hartree) from OH+CO 
+cm OH+CO         20.0000  1.8322 20.1133 20.0837  2.1316 20.0022 -0.582362     0.000 
+cm HO-COsp        5.6830  1.8080  7.8280  4.7490  2.1460  6.8450 -0.584049    -1.059 
+cm t-HOCOmin      4.2288  1.9511  6.2259  2.8018  2.2008  4.4888 -0.630489   -30.200 
+cm ctsp           4.2297  1.9510  5.7300  2.8016  2.2009  4.4868 -0.615667   -20.900  
+cm t-HOCO-HCO2sp  2.5158  2.3620  3.7690  3.1044  2.2358  5.1981 -0.570027     7.740  
+cm c-HOCOmin      4.2301  1.9511  5.2394  2.8017  2.2009  4.4835 -0.626982   -28.000  
+cm HCO2min        2.0946  3.8528  3.8528  2.3979  2.3979  4.2366 -0.605469   -14.500 
+cm c-H-OCOsp      5.1733  2.9449  7.3633  2.4991  2.1985  4.6640 -0.579971     1.500 
+cm H-CO2sp        3.8328  4.7470  4.7467  2.2718  2.2718  4.4893 -0.597676    -9.610 
+cm H+CO2         20.0000 20.1195 20.1195  2.1900  2.1900  4.3800 -0.617881   -22.289 
+cm
+cm
+c ==============================================================================
+cm
+cm  It is assumed that the main code calls the subroutine as:
+cm    call sf12mjl2(r1,r2,r3,r4,r5,r6,v)
+cm  using the same definition of r1...r6 as defined in this subroutine.
+cm
+c ==============================================================================
+cm
+cm  "srffit12" is the 12th version of the HOCO surface fit.
+cm  The 12th version makes minor adjustments to the 11th version,
+cm  "srffit11", which is the bulk of the code.  First, the six
+cm  interatomic coordinates r1...r6 are adjusted to match the
+cm  saddle point and minima geometries of the 11th fit (which
+cm  were slightly off), then srffit11 is called, and finally
+cm  the energies that are returned are adjusted slightly (by
+cm  adding Guassians at key geometries) to account for the most
+cm  recent data (MJL 6/01).
+cm
+cm  The coordinates are defined as follows (ho+co'<->h+oco'):
+c     r1=h-c
+c     r2=h-o
+c     r3=h-o'
+c     r4=c-o
+c     r5=c-o'
+c     r6=o-o'
+cm
+c   KSB-Modified Surface for HOCO.  4/18/96
+cm
+      data pi/3.141592654/
+      data epp/.001/,gam/10./
+      common/ipes/ipes
+cm
+c
+      s2=exp(-gam*(r6i-abs(r4-r5)))
+      s3=exp(gam*(r6i-r4-r5))
+      r6=r6i+epp*s2-epp*s3
+      arg=(r4**2+r5**2-r6**2)/(2.*r4*r5)
+c      if(arg.gt.1.) arg=1.
+c      if(arg.lt.-1.) arg=-1.
+      a=acos(arg)
+      arg=(r1**2+r5**2-r3**2)/(2.*r1*r5)
+      if(arg.gt.1.) arg=1.
+      if(arg.lt.-1.) arg=-1.
+      b=acos(arg)
+      arg=(r1**2+r4**2-r2**2)/(2.*r1*r4)
+      if(arg.gt.1.) arg=1.
+      if(arg.lt.-1.) arg=-1.
+      g=acos(arg)
+      s2=exp(-gam*(r6i-abs(r2-r3)))
+      s3=exp(gam*(r6i-r2-r3))
+      r6=r6i+epp*s2-epp*s3
+      arg=(r2**2+r3**2-r6**2)/(2.*r2*r3)
+c      if(arg.gt.1.) arg=1.
+c      if(arg.lt.-1.) arg=-1.
+      d=acos(arg)
+      a0=pi*(1.-0.294*exp(-0.6*(r2-1.951)**2)*exp(-0.6*(r1-4.230)**2))
+     &*(1.-0.294*exp(-0.6*(r3-1.951)**2)*exp(-0.6*(r1-4.230)**2))
+      r6a=sqrt(r4**2+r5**2+2.*r4*r5*cos(a-a0))
+      sinaa0=sin(a-a0)
+      sina0=sin(a0)
+      sina=sin(a)
+      sind=sin(d)
+c      if(abs(sina).lt..001) sina=.001
+c      if(abs(sind).lt..001) sind=.001
+      damp=tanh(10.*a)*tanh(10.*d)
+      damp2=1.0-abs((tanh(6.0*(r4-3.0))-1.0)/2.0)
+      damp2p=1.0-abs((tanh(6.0*(r5-3.0))-1.0)/2.0)
+      cosa=cos(a)
+      cosb=cos(b)
+      cosg=cos(g)
+      cosa35=(r3**2+r5**2-r1**2)/(2.*r3*r5)
+      cosa24=(r2**2+r4**2-r1**2)/(2.*r2*r4)
+      cosa25=(r1*cosb-r4*cosa)/r2
+      cosa34=(r1*cosg-r5*cosa)/r3
+      cosdi=(cosa35*cosa24-cosa25*cosa34)/(sina*sind)
+      if(cosdi.gt.1.) cosdi=1.
+      if(cosdi.lt.-1.) cosdi=-1.
+      di=acos(cosdi)
+      sindi=sin(di)
+      r2a=(r1**2+r4**2*(sinaa0**2+sina0**2+2.*sinaa0*sina0
+     &*cosa)/sina**2+2.*r1*r4*(sinaa0*cosg+sina0*cosb)/sina)
+      r3a=(r1**2+r5**2*(sinaa0**2+sina0**2+2.*sinaa0*sina0
+     &*cosa)/sina**2+2.*r1*r5*(sinaa0*cosb+sina0*cosg)/sina)
+      if(r2a.lt.0.) r2a=0.
+      if(r3a.lt.0.) r3a=0.
+      r2a=sqrt(r2a)
+      r3a=sqrt(r3a)
+      r2b=r2a*(1.+tanh(10.*(r2-r3)))/2.+r2*(1.+tanh(10.*(r3-r2)))/2.
+      r3b=r3a*(1.+tanh(10.*(r3-r2)))/2.+r3*(1.+tanh(10.*(r2-r3)))/2.
+      call srffit11(r1,r2b,r3b,r4,r5,r6a,va)
+!        vdi=exp(-1.0*(r2-1.951)**2)*exp(-1.0*(r1-4.230)**2)
+!    &*(0.01*(1.-cosdi**2)+0.00175*(1.-cosdi))
+!    &+exp(-1.0*(r3-1.951)**2)*exp(-1.0*(r1-4.230)**2)
+!    &*(0.01*(1.-cosdi**2)+0.00175*(1.-cosdi))
+c KSB 04/16/96 Modifications here.
+cm  Removed the redundancy in terms for r2.le.r3 or r3.le.r2 and the
+cm  hard switch.  Instead, simply add together terms for vdi3 and vdi3p,
+cm  vdi5 and vdi5p, vdi7 and vdi7p, vdi8 and vdi8p, vdi9 and vdi9p, but
+cm  use single terms for vdi4 and vdi6 because the geometries are
+cm  symmetric and therefore redundant.
+c
+c this is for adjusting the ho-copl barrier
+c   centered on ho-copl
+cm  This vdi term was left with the cosdi**2 term because we wanted
+cm  to continue to constrain the out-of-plane torsion at the HO-CO sp 
+cm  (for a discussion of the frequencies at this saddle point, see
+cm  Bradley and Schatz, JCP, 1997).
+      vdi3=0.020*exp(-(r1-5.683)**2-(r2-1.808)**2
+     &-(r3-7.828)**2-(r4-4.749)**2
+     &-(r5-2.146)**2-(r6-6.845)**2)
+     &*(1.0-cosdi**2)
+c
+c vdi3p is vdi3 for o & o' equivalence
+      vdi3p=0.020*exp(-(r1-5.683)**2-(r3-1.808)**2
+     &-(r2-7.828)**2-(r5-4.749)**2
+     &-(r4-2.146)**2-(r6-6.845)**2)
+     &*(1.0-cosdi**2)
+c
+c   centered on h-co2sp
+      vdi4=0.001969*exp(-(r1-3.8328)**2-(r2-4.7470)**2
+     &-(r3-4.7467)**2-(r4-2.2718)**2-(r5-2.2718)**2
+     &-(r6-4.4893)**2)
+c
+c   centered on isosp
+      vdi5=0.001718*exp(-(r1-2.5158)**2-(r2-2.3620)**2
+     &-(r3-3.7690)**2-(r4-3.1044)**2-(r5-2.2358)**2
+     &-(r6-5.1981)**2)
+c
+c vdi5p is vdi5 for o & o' equivalence
+      vdi5p=0.001718*exp(-(r1-2.5158)**2-(r3-2.3620)**2
+     &-(r2-3.7690)**2-(r5-3.1044)**2-(r4-2.2358)**2
+     &-(r6-5.1981)**2)
+c
+c   centered on hco2min
+      vdi6=0.020500*exp(-(r1-2.0946)**2-(r2-3.8528)**2
+     &-(r3-3.8528)**2-(r4-2.3979)**2-(r5-2.3979)**2
+     &-(r6-4.2366)**2)
+c
+cm  add terms to raise c-HOCO relative to t-HOCO and put
+cm  a barrier between them:
+      vdi7=0.003518*exp(-(r1-4.2301)**2-(r2-1.9511)**2
+     &-5.0*(r3-5.2394)**2-(r4-2.8017)**2-(r5-2.2009)**2
+     &-(r6-4.4835)**2)
+     &+0.013816*exp(-(r1-4.2297)**2-(r2-1.9510)**2
+     &-25.0*(r3-5.73)**2-(r4-2.8016)**2-(r5-2.2009)**2
+     &-(r6-4.4868)**2)
+cm
+cm vdi7p is vdi7 for o & o' equivalence
+      vdi7p=0.003518*exp(-(r1-4.2301)**2-(r3-1.9511)**2
+     &-5.0*(r2-5.2394)**2-(r5-2.8017)**2-(r4-2.2009)**2
+     &-(r6-4.4835)**2)
+     &+0.013816*exp(-(r1-4.2297)**2-(r3-1.9510)**2
+     &-25.0*(r2-5.73)**2-(r5-2.8016)**2-(r4-2.2009)**2
+     &-(r6-4.4868)**2)
+cm
+cm  add a term to raise all HOCO configurations (t-HOCO,
+cm  c-HOCO, and ctsp), r3 term is left out:
+      vdi8=0.010823*exp(-(r1-4.2297)**2-(r2-1.9510)**2
+     &-(r4-2.8016)**2-(r5-2.2009)**2
+     &-(r6-4.4868)**2)
+cm
+cm  vdi8p is vdi8 for o & o' equivalence
+      vdi8p=0.010823*exp(-(r1-4.2297)**2-(r3-1.9510)**2
+     &-(r5-2.8016)**2-(r4-2.2009)**2
+     &-(r6-4.4868)**2)
+cm
+cm  add a term to lower c-H-OCO sp (note the prefactor
+cm  before the r2 term):
+      vdi9=-0.003316*exp(-(r1-5.1733)**2-4.0*(r2-2.9449)**2
+     &-(r3-7.3633)**2-(r4-2.4991)**2-(r5-2.1985)**2
+     &-(r6-4.6640)**2)
+cm
+cm  vdi9p is vdi9 for o & o' equivalence:
+      vdi9p=-0.003316*exp(-(r1-5.1733)**2-4.0*(r3-2.9449)**2
+     &-(r2-7.3633)**2-(r5-2.4991)**2-(r4-2.1985)**2
+     &-(r6-4.6640)**2)
+cm
+cm  add together all terms for the potential:
+cm  The vdi3 term is not used as the hybrid van der Waals surface 
+cm  describes that region of LTSH. 
+!     v=va+vdi3+vdi3p+vdi4+vdi5+vdi5p+vdi6+vdi7+vdi7p+ 
+!    &  vdi8+vdi8p+vdi9+vdi9p 
+      v=va+vdi4+vdi5+vdi5p+vdi6+vdi7+vdi7p+
+     &  vdi8+vdi8p+vdi9+vdi9p
+cm
+      return
+      end
+cm
+cm
+      subroutine srffit11(r1,r2,r3,r4,r5,r6,v)
+c     potential surface for hco2 with corrections added for the h-oco,
+c     h-co2, ohco, and oh+co saddle points.  inputted distances are in
+c     bohr, outputted energy is in hartrees. necessary input files
+c     are 112=coeft and 113=coefhco2.
+      implicit double precision(a-h,o-z)
+c      coordinates are defined as:
+c     r(1)=h1-c2
+c     r(2)=h1-o3
+c     r(3)=h1-o4
+c     r(4)=c2-o3
+c     r(5)=c2-o4
+c     r(6)=o3-o4
+c     note that the r's are permuted within this subroutine to make the
+c     two o's equivalent.
+      dimension rs1(6),rt1(6),a1m(6),c1(6),cc1(6,6),r(6)
+      dimension rs2(6),rt2(6),a2m(6),c2(6),cc2(6,6)
+cm  define new variables cc1b and cc2b for old changing of cc1 and cc2
+      dimension cc1b(6,6),cc2b(6,6)
+cm  new common block added to remove read statements:
+      common/sf11data/rs1,a1m,v1m,c1,cc1,rs2,a2m,v2m,c2,cc2
+cm
+      data ifirst/1/
+      data pi/3.141592654/
+      r(1)=r1
+      r(2)=r2
+      r(3)=r3
+      r(4)=r4
+      r(5)=r5
+      r(6)=r6
+      if(ifirst.eq.1) then
+      ifirst=0
+c
+c     read in coefficients
+c
+cm  read statements removed and replaced with common block:
+!     read(112,500)(rs1(i),i=1,6)
+!     read(112,500)(a1m(i),i=1,6)
+!     read(112,500)v1m 
+!     read(112,500)(c1(i),i=1,6)
+!     read(113,500)(rs2(i),i=1,6)
+!     read(113,500)(a2m(i),i=1,6)
+!     read(113,500)v2m 
+!     read(113,500)(c2(i),i=1,6)
+  500 format(1x,6e13.6)
+!     do 11 i=1,6
+!     read(112,500)(cc1(i,j),j=1,6)
+!  11 read(113,500)(cc2(i,j),j=1,6)
+!     do 20 i=1,6
+!     cc1(i,i)=0.5*cc1(i,i)
+!  20 cc2(i,i)=0.5*cc2(i,i)
+      endif
+cm  new cc:
+      do 20 i=1,6
+      do 21 j=1,6
+        cc1b(i,j)=cc1(i,j)
+        cc2b(i,j)=cc2(i,j) 
+   21 continue
+      cc1b(i,i)=0.5*cc1(i,i)
+      cc2b(i,i)=0.5*cc2(i,i)
+   20 continue
+cm
+cm  add write block to check values:
+!     write(31,*) 'I am in srffit11 and '
+!     write(31,*) 'cc1 = ',cc1(1,1),cc1(1,2),cc1(1,3)
+!     write(31,*) 'cc1b = ',cc1b(1,1),cc1b(1,2),cc1b(1,3)
+!     write(31,*) 'v1m  = ',v1m 
+cm
+      do 5 i=2,5
+    5 rt1(i)=r(i)
+      if(rt1(2).gt.rt1(3)) then
+      r(2)=rt1(3)
+      r(3)=rt1(2)
+      r(4)=rt1(5)
+      r(5)=rt1(4)
+      endif
+c
+c     call two and three body potential
+c
+      call srfhco2a(r(1),r(2),r(3),r(4),r(5),r(6),v23)
+c
+c     calculate four-body contribution to potential
+c
+      p1=v1m 
+      p2=v2m 
+      do 12 i=1,6
+      rt1(i)=r(i)-rs1(i)
+      rt2(i)=r(i)-rs2(i)
+      p1=p1+c1(i)*rt1(i)
+   12 p2=p2+c2(i)*rt2(i)
+      do 13 i=1,6
+      j1=i
+      do 13 j=j1,6
+!     p1=p1+cc1(i,j)*rt1(i)*rt1(j)
+!  13 p2=p2+cc2(i,j)*rt2(i)*rt2(j)
+cm  using new cc:
+      p1=p1+cc1b(i,j)*rt1(i)*rt1(j)
+   13 p2=p2+cc2b(i,j)*rt2(i)*rt2(j)
+cm
+      pr1=1.0
+      pr2=1.0
+      do 15 i=1,6
+      pr1=pr1*exp(-a1m(i)*rt1(i)**2)
+   15 pr2=pr2*exp(-a2m(i)*rt2(i)**2)
+      vi1=pr1*p1
+      vi2=pr2*p2
+c
+c     calculate total potential energy
+c
+      v=vi1+vi2+v23
+c
+c     adjust for saddle points
+c
+      aterm=0.236*exp(-3.0*(r(2)-2.934)**2-3.0*(r(1)-5.178)**2)
+      bterm=0.584*exp(-0.5*(r(2)-4.730)**2-0.5*(r(3)-4.730)**2)*
+     &0.25*(1.-tanh(10.0*(r(1)-5.6)))*(1.+tanh(10.0*(r(1)-2.35)))
+     &*exp(-5.0*(r(4)-r(5))**2)
+      cterm=0.260*exp(-10.0*(r(1)-2.524)**2-3.0*(r(2)-2.294)**2)
+      v=v*(1.-aterm)*(1.-bterm)*(1.-cterm)-0.61805*(aterm+bterm+cterm)
+c
+c     scale down the oh+co entrance channel barrier
+c
+      vm=-0.64130+0.05894*(1.-exp(-1.0*(r(4)-2.8)))**2
+      factor=0.25*(1.0-tanh(3.0*(r(4)-10.)))*(1.+tanh(3.0*(r(4)-2.8)))
+     &*exp(-10.0*(r(6)-r(5)-r(4))**2-1.0*(r(2)-1.893)**2-1.0*(r(1)
+     &-r(2)-r(4)+0.822)**2)
+      v=v-0.13*(v-vm)*factor
+      return
+      end
+      subroutine srfhco2a(rch,roh,roh2,rco,rco2,roo,v)
+c*******************************************************
+c                                                      *
+c     hco2 surface made by summing up 2 & 3 body terms *
+c     using srfhcomr, srfco2ft, and ho2pot             *
+c                                                      *
+c*******************************************************
+      implicit double precision(a-h,o-z)
+      call hcopart(rch,rco,roh,vch,voh,v3hco)
+      call ho2part(roh,roo,roh2,v3ho2)
+      call srfco2ft(rco,roo,rco2,vcoo)
+      call hcopart(rch,rco2,roh2,vch,voh2,v3hco2)
+      v=vch+voh+voh2+v3hco+v3hco2+v3ho2+vcoo
+      return
+      end
+      subroutine ho2part(rho2,roo,rho1,vt)
+c     modified melius, blint poteneil for ho2
+c     includes a murrel type correction to make ho2 minimum have properties
+c     identical to the pol-ci surface of dunning et al except for the
+c     dissociation energy which is set to the experimential one.  the
+c     barrier is adjusted to equal  0.48kcal/mol
+      implicit double precision(a-h,o-z)
+      dimension r9(6)
+!     dimension v(3),gam(3)
+      dimension gam(3)
+      dimension c0(15),c1(15),c2(15),b(15),a(5),x(3)
+      double precision l
+      data fa,fb1,fb2,fb3/-0.013148,-0.031662,-0.012903,-0.0015863/
+      data fc11,fc22,fc33/0.030727,0.041088,-0.017909/
+      data fc12,fc13,fc23/0.033207,0.0017910,-0.019986/
+      data gam/1.0,1.0,1.0/
+      data foh,foo,fohp/1.8733,2.5878,3.5267/
+      data c0/77.45,-.4071,-.508,.1489,1.013,-10.495,9.1484,10.273,
+     x.0,.0,-3.05,-33.78,-22.951,.0,.0/
+      data c1/-1.3699,.4101,.3411,16.906,.0005637,-.6359,-.06253,
+     x-.1225,.0,.0,-.00906,.4435,.7439,.0,.0/
+      data c2/-.3498,.6617,.8677,1.3858,233.36,-4.765,-1.626,.6337,
+     x.0,.0,-476.32,-1.2104,-1.2762,.0,.0/
+      data beta/-1.4694/,alph/-.9172/
+      r9(1)=rho1
+      r9(2)=rho2
+      r9(3)=roo
+      roo2=r9(3)**2
+      d=r9(2)-r9(1)
+      r12=r9(1)**2
+      r22=r9(2)**2
+      l=10.
+      te=tanh(l*d)
+      rs=r9(1)+r9(2)
+      t2=4.*r9(3)
+c     here a switching function has been added ton the original m-b potential
+c     to make the transition from hoo to ooh continuous
+      psi=(roo2-r12+r22)*(1-te)/(t2*r9(2))
+      psi=psi+((r12+roo2-r22)*(1+te)/(t2*r9(1)))
+      do 27 k=1,15
+  27  b(k)=c0(k)*(1.+(c1(k)*psi*(1.+c2(k)*psi)))
+      te=exp(2.5*beta)
+      tf=exp(beta*r9(3))
+      u=tf-te
+      do 37 k=1,5
+  37  a(k)=b(k)*(1.+b(k+5)*u*(1.+b(k+10)*u))
+      rm=(r9(1)*r9(2))/rs
+      v12=a(1)*(1.+a(2)*rs*(1.+a(3)*rm))*exp(alph*rs)
+      v123=tf*a(4)*(1.+a(5)*rs)*(exp(alph*r9(1))+exp(alph*r9(2)))
+      vt=0.0
+      vt=vt+v12+v123
+      x(1)=rho1
+      x(2)=roo-foo
+      x(3)=rho2
+      d=x(1)-x(3)
+      te=tanh(l*d)
+      pr=x(1)
+      x(1)=0.5*pr*(1.-te)+0.5*x(3)*(1.+te)
+      x(3)=0.5*pr*(1.+te)+0.5*x(3)*(1.-te)
+      x(1)=x(1)-foh
+      x(3)=x(3)-fohp
+      pr=1.
+      do 10 i=1,3
+   10 pr=pr*(1.-tanh(gam(i)*0.5*x(i)))
+      vt=vt+pr*(fa+fb1*x(1)+fb2*x(2)+fb3*x(3)+0.5*(fc11*x(1)**2
+     x+fc22*x(2)**2+fc33*x(3)**2)+fc12*x(1)*x(2)+fc13*x(1)*x(3)+
+     xfc23*x(2)*x(3))
+      return
+      end
+      subroutine hcopart(rch,rco,roh,vch,voh,v)
+c
+c**************************************************************
+c                                                             *
+c     potential surface for hco: murrell jn, rodriguez ja     *
+c                                                             *
+c**************************************************************
+c
+      implicit double precision(a-h,o-z)
+      data rech,dech,a1ch,a2ch,a3ch,reco,deco,a1co,a2co,a3co,reoh,deoh,
+     &a1oh,a2oh,a3oh/1.1199,3.631,3.836,3.511,2.268,1.1283,11.226,3.897,
+     &2.305,1.898,.9696,4.621,4.507,4.884,3.795/
+      data c1,c2,c3,c11,c12,c13,c22,c23,c33,c122,c222,c223,c1222,c2222,
+     &c2223,c22222,c22223,c222222,v0,g1,g2,g3,r10,r20,r30/2.4173,-.1755,
+     &.6906,6.1910,-.2588,.2543,-.9255,-.6689,.7087,-1.7903,.7823,
+     &-.8302,.2819,1.6066,2.9747,-.0215,3.9371,.0076,7.2620,1.954,
+     &7.000,2.540,1.642,1.249,1.355/
+      r1=rch*.5291772
+      r2=rco*.5291772
+      r3=roh*.5291772
+      rhoch=r1-rech
+      rhoco=r2-reco
+      rhooh=r3-reoh
+      vch=-dech*(1.+a1ch*rhoch+a2ch*rhoch**2+a3ch*rhoch**3)*
+     &exp(-a1ch*rhoch)/27.21161
+      voh=-deoh*(1.+a1oh*rhooh+a2oh*rhooh**2+a3oh*rhooh**3)*
+     &exp(-a1oh*rhooh)/27.21161
+      rho1=r1-r10
+      rho2=r2-r20
+      rho3=r3-r30
+      s1=0.0402*rho1+0.9906*rho2+0.1308*rho3
+      s2=0.5718*rho1+0.0845*rho2-0.8160*rho3
+      s3=0.8194*rho1-0.1076*rho2+0.5630*rho3
+      v3=v0*(1.+c1*s1+c2*s2+c3*s3+c11*s1**2+c12*s1*s2+c13*s1*s3+c22*s2**
+     &2+c23*s2*s3+c33*s3**2+c122*s1*s2**2+c222*s2**3+c223*s2**2*s3+c1222
+     &*s1*s2**3+c2222*s2**4+c2223*s2**3*s3+c22222*s2**5+c22223*s2**4*s3+
+     &c222222*s2**6)*(1.-tanh(g1*rho1/2.))*(1.-tanh(g2*rho2/2.))*
+     &(1.-tanh(g3*rho3/2.))
+      v=v3/27.21161
+      return
+      end
+      subroutine srfco2ft(rco,roo,rco2,v)
+      implicit double precision(a-h,o-z)
+c     potential surface for co2.based on murrell type fit to potential
+c     of carter and murrell. designed to dissociate to ground state atoms.
+c     inputted distances are in bohr, outputted
+c     energy is in hartrees. necessary input files are 17=coefco2
+c      coordinates are defined as:
+c     r(1)=c1-o2
+c     r(3)=c1-o3
+c     r(2)=o2-o3
+      dimension rs(6),rt(6),a(6),c(6),cc(6,6),r(6)
+      dimension ic(10),jc(10),kc(10),ccc(10)
+      dimension iq(15),jq(15),kq(15),lq(15),ccq(15)
+cm  dimension new variables used in the common block statement 
+      dimension rsco2(3),aco2(3),cco2(3),ccco2(3,3) 
+cm  new common block added to remove read statements:
+      common/co2data/rsco2,aco2,v1co2,cco2,ccco2,
+     xic,jc,kc,ccc,iq,jq,kq,lq,ccq
+cm
+      data ifirst/1/
+      data pi/3.141592654/
+      r(1)=rco
+      r(2)=roo
+      r(3)=rco2
+      if(ifirst.eq.1) then
+      ifirst=0
+c
+c     read in coefficients
+c
+cm  read statements removed and replaced with common block:
+!     read(17,500)(rs(i),i=1,3)
+!     read(17,500)(a(i),i=1,3)
+!     read(17,500)v1
+!     read(17,500)(c(i),i=1,3)
+  500 format(1x,6e13.6)
+!     do 11 i=1,3
+!  11 read(17,500)(cc(i,j),j=1,3)
+!     do 20 i=1,3
+!  20 cc(i,i)=0.5*cc(i,i)
+!     do 71 i=1,10
+!     read(17,*) ic(i),jc(i),kc(i),ccc(i)
+!  71 continue
+!     do 72 i=1,15
+!     read(17,*) iq(i),jq(i),kq(i),lq(i),ccq(i)
+!  72 continue
+      endif
+cm  statement block for renaming common block arrays:
+      v1=v1co2
+      do 11 i=1,3
+        rs(i)=rsco2(i)
+        a(i)=aco2(i)
+        c(i)=cco2(i)
+        do 21 j=1,3
+          cc(i,j)=ccco2(i,j)
+   21   continue
+   11 continue
+cm  end statement block for renaming common block arrays.
+cm  redo cc diagonal halving:
+      do 20 i=1,3
+   20 cc(i,i)=0.5*cc(i,i)
+cm
+c
+c     call two and three body potential
+c
+      call srfco2tb(r(1),r(2),r(3),v23)
+c
+c     calculate four-body contribution to potential
+c
+      p=v1
+      do 12 i=1,3
+      rt(i)=r(i)-rs(i)
+   12 p=p+c(i)*rt(i)
+      do 13 i=1,3
+      j1=i
+      do 13 j=j1,3
+   13 p=p+cc(i,j)*rt(i)*rt(j)
+      do 73 i=1,10
+      p=p+ccc(i)*rt(ic(i))*rt(jc(i))*rt(kc(i))
+   73 continue
+      do 74 i=1,15
+      p=p+ccq(i)*rt(iq(i))*rt(jq(i))*rt(kq(i))*rt(lq(i))
+   74 continue
+      pr=1.0
+      do 15 i=1,3
+   15 pr=pr*(1.-tanh(a(i)*rt(i)))
+      vi=pr*p
+c
+c     calculate total potential energy
+c
+      v=vi+v23
+      return
+      end
+      subroutine srfco2tb(rco1,roo,rco2,v)
+      implicit double precision(a-h,o-z)
+c
+c*********************************************************
+c
+c      two body potential for co2 potential which is adapted
+c      from murrels, but modified to dissociate to ground state
+c      oxygen atoms
+c
+c*********************************************************
+c
+      data decoa,a1coa,a2coa,a3coa,recoa
+     &,deo2b,a1o2b,a2o2b,a3o2b,
+     &reo2b/11.226,3.897,2.305,1.898,1.128,
+     &5.213,6.080,11.477,11.003,
+     &1.208/
+      r1=rco1*.5291772
+      r2=rco2*.5291772
+      r3=roo*.5291772
+      rho1a=r1-recoa
+      rho2a=r2-recoa
+      rho3b=r3-reo2b
+      v21a=-decoa*(1.+a1coa*rho1a+a2coa*rho1a**2+a3coa*rho1a**3)*
+     &exp(-a1coa*rho1a)
+      v22a=-decoa*(1.+a1coa*rho2a+a2coa*rho2a**2+a3coa*rho2a**3)*
+     &exp(-a1coa*rho2a)
+      v23b=-deo2b*(1.+a1o2b*rho3b+a2o2b*rho3b**2+a3o2b*rho3b**3)*
+     &exp(-a1o2b*rho3b)
+      v=(v21a+v22a+v23b)/27.21161
+      return
+      end
+cm
+      block data blkdat
+      implicit double precision(a-h,o-z)
+cm
+      dimension rs1(6),a1m(6),c1(6),cc1(6,6),rs2(6),a2m(6),c2(6),
+     xcc2(6,6)
+      dimension rsco2(3),aco2(3),cco2(3),ccco2(3,3),ic(10),jc(10),
+     x kc(10),ccc(10),iq(15),jq(15),kq(15),lq(15),ccq(15)
+cm
+      common/sf11data/rs1,a1m,v1m,c1,cc1,rs2,a2m,v2m,c2,cc2
+      common/co2data/rsco2,aco2,v1co2,cco2,ccco2,
+     xic,jc,kc,ccc,iq,jq,kq,lq,ccq
+cm
+      data rs1/0.423200E+01,0.195200E+01,0.632400E+01,0.280000E+01,
+     x0.220000E+01,0.500000E+01/
+      data a1m/0.100000E+01,0.100000E+01,0.100000E+01,0.100000E+01,
+     x0.100000E+01,0.100000E+01/
+      data v1m/-0.641768E-01/
+      data c1/0.969918E-02,-0.597738E-03,-0.126958E-01,0.250272E+00,
+     x0.210925E+00,-0.188974E+00/
+      data rs2/0.210000E+01,0.384600E+01,0.384600E+01,0.240300E+01,
+     x0.240300E+01,0.425200E+01/
+      data a2m/0.500000E+00,0.500000E+00,0.500000E+00,0.500000E+00,
+     x0.500000E+00,0.500000E+00/
+      data v2m/-0.174983E+00/
+      data c2/0.140020E+00,-0.442111E-01,-0.442111E-01,0.187206E-01,
+     x0.187206E-01,0.567275E-01/
+      data cc1(1,1)/-0.794898E-01/,cc1(1,2)/0.164732E-01/,cc1(1,3)
+     x/0.719638E-02/,cc1(1,4)/-0.604268E+00/,cc1(1,5)/-0.637829E+00/,
+     xcc1(1,6)/0.590080E+00/,cc1(2,1)/0.164732E-01/,cc1(2,2)
+     x/0.131149E+00/,cc1(2,3)/0.126533E-01/,cc1(2,4)/0.237378E+00/,
+     xcc1(2,5)/0.338605E+00/,cc1(2,6)/-0.372529E+00/,cc1(3,1)
+     x/0.719638E-02/,cc1(3,2)/0.126533E-01/,cc1(3,3)/-0.159525E+00/,
+     xcc1(3,4)/0.000000E+01/,cc1(3,5)/0.827640E-02/,cc1(3,6)
+     x/0.404725E-01/,cc1(4,1)/-0.604268E+00/,cc1(4,2)/0.237378E+00/,
+     xcc1(4,3)/0.000000E+01/,cc1(4,4)/0.104310E+01/,cc1(4,5)
+     x/0.498414E+00/,cc1(4,6)/-0.141637E+01/,cc1(5,1)/-0.637829E+00/,
+     xcc1(5,2)/0.338605E+00/,cc1(5,3)/0.827640E-02/,cc1(5,4)
+     x/0.498414E+00/,cc1(5,5)/-0.139244E+00/,cc1(5,6)/-0.904117E+00/,
+     xcc1(6,1)/0.590080E+00/,cc1(6,2)/-0.372529E+00/,cc1(6,3)
+     x/0.404725E-01/,cc1(6,4)/-0.141637E+01/,cc1(6,5)/-0.904117E+00/,
+     xcc1(6,6)/0.171867E+01/
+      data cc2(1,1)/-0.373011E+00/,cc2(1,2)/0.196153E+00/,cc2(1,3)
+     x/0.196155E+00/,cc2(1,4)/-0.116375E+00/,cc2(1,5)/-0.116375E+00/,
+     xcc2(1,6)/-0.692207E-01/,cc2(2,1)/0.196153E+00/,cc2(2,2)
+     x/-0.233218E+00/,cc2(2,3)/-0.227124E+00/,cc2(2,4)/0.135167E+00/,
+     xcc2(2,5)/0.696020E-01/,cc2(2,6)/0.225473E-01/,cc2(3,1)
+     x/0.196155E+00/,cc2(3,2)/-0.227124E+00/,cc2(3,3)/-0.233218E+00/,
+     xcc2(3,4)/0.696029E-01/,cc2(3,5)/0.135166E+00/,cc2(3,6)
+     x/0.225473E-01/,cc2(4,1)/-0.116375E+00/,cc2(4,2)/0.135167E+00/,
+     xcc2(4,3)/0.696029E-01/,cc2(4,4)/0.402031E+00/,cc2(4,5)
+     x/0.216104E+00/,cc2(4,6)/-0.240674E+00/,cc2(5,1)/-0.116375E+00/,
+     xcc2(5,2)/0.696020E-01/,cc2(5,3)/0.135166E+00/,cc2(5,4)
+     x/0.216104E+00/,cc2(5,5)/0.402031E+00/,cc2(5,6)/-0.240675E+00/,
+     xcc2(6,1)/-0.692207E-01/,cc2(6,2)/0.225473E-01/,cc2(6,3)
+     x/0.225473E-01/,cc2(6,4)/-0.240674E+00/,cc2(6,5)/-0.240675E+00/,
+     xcc2(6,6)/-0.414275E-01/
+      data rsco2/0.219279E+01,0.438558E+01,0.219279E+01/
+      data aco2/0.500000E+00,0.500000E+00,0.500000E+00/
+      data v1co2/0.211000E+00/
+      data cco2/0.205794E+00,-0.789792E-01,0.205794E+00/ 
+      data ccco2(1,1)/0.107658E-01/,ccco2(1,2)/0.930993E-01/,
+     xccco2(1,3)/-0.190408E-01/,ccco2(2,1)/0.930993E-01/,ccco2(2,2)
+     x/0.468188E-01/,ccco2(2,3)/0.930993E-01/,ccco2(3,1)
+     x/-0.190408E-01/,ccco2(3,2)/0.930993E-01/,ccco2(3,3)/0.107658E-01/
+      data ic/1,1,1,1,1,1,2,2,2,3/
+      data jc/1,1,1,2,2,3,2,2,3,3/
+      data kc/1,2,3,2,3,3,2,3,3,3/
+      data ccc/-0.265929E-02,0.270282E-01,-0.774804E-02,0.351051E-01,
+     x0.285664E-01,-0.774804E-02,-0.244811E-01,0.351051E-01,
+     x0.270282E-01,-0.265929E-02/ 
+      data iq/1,1,1,1,1,1,1,1,1,1,2,2,2,2,3/
+      data jq/1,1,1,1,1,1,2,2,2,3,2,2,2,3,3/
+      data kq/1,1,1,2,2,3,2,2,3,3,2,2,3,3,3/
+      data lq/1,2,3,2,3,3,2,3,3,3,2,3,3,3,3/
+      data ccq/0.623374E-02,-0.738617E-02,0.198525E-01,-0.189044E-01,
+     x0.563030E-02,-0.134957E-02,-0.774377E-02,-0.108400E-01,
+     x0.563030E-02,0.198525E-01,0.217991E-01,-0.774377E-02,
+     x-0.189044E-01,-0.738617E-02,0.623374E-02/
+cm  End block data
+      end
+cm  
+cm  Here are the input files needed for the surface:
+cm  These have been removed and replaced with the block data statement
+cm  (January 2002, MJL).
+cm
+c ==============================================================================
+c input file: coeft
+c   0.423200E+01 0.195200E+01 0.632400E+01 0.280000E+01 0.220000E+01 0.500000E+01
+c   0.100000E+01 0.100000E+01 0.100000E+01 0.100000E+01 0.100000E+01 0.100000E+01
+c  -0.641768E-01
+c   0.969918E-02-0.597738E-03-0.126958E-01 0.250272E+00 0.210925E+00-0.188974E+00
+c  -0.794898E-01 0.164732E-01 0.719638E-02-0.604268E+00-0.637829E+00 0.590080E+00
+c   0.164732E-01 0.131149E+00 0.126533E-01 0.237378E+00 0.338605E+00-0.372529E+00
+c   0.719638E-02 0.126533E-01-0.159525E+00 0.000000E+01 0.827640E-02 0.404725E-01
+c  -0.604268E+00 0.237378E+00 0.000000E+01 0.104310E+01 0.498414E+00-0.141637E+01
+c  -0.637829E+00 0.338605E+00 0.827640E-02 0.498414E+00-0.139244E+00-0.904117E+00
+c   0.590080E+00-0.372529E+00 0.404725E-01-0.141637E+01-0.904117E+00 0.171867E+01
+c   0.000000E+01 0.000000E+01
+c ==============================================================================
+c input file: coefhco2
+c   0.210000E+01 0.384600E+01 0.384600E+01 0.240300E+01 0.240300E+01 0.425200E+01
+c   0.500000E+00 0.500000E+00 0.500000E+00 0.500000E+00 0.500000E+00 0.500000E+00
+c  -0.174983E+00
+c   0.140020E+00-0.442111E-01-0.442111E-01 0.187206E-01 0.187206E-01 0.567275E-01
+c  -0.373011E+00 0.196153E+00 0.196155E+00-0.116375E+00-0.116375E+00-0.692207E-01
+c   0.196153E+00-0.233218E+00-0.227124E+00 0.135167E+00 0.696020E-01 0.225473E-01
+c   0.196155E+00-0.227124E+00-0.233218E+00 0.696029E-01 0.135166E+00 0.225473E-01
+c  -0.116375E+00 0.135167E+00 0.696029E-01 0.402031E+00 0.216104E+00-0.240674E+00
+c  -0.116375E+00 0.696020E-01 0.135166E+00 0.216104E+00 0.402031E+00-0.240675E+00
+c  -0.692207E-01 0.225473E-01 0.225473E-01-0.240674E+00-0.240675E+00-0.414275E-01
+c   0.000000E+01 0.000000E+01
+c ==============================================================================
+c input file: coefco2
+c   0.219279E+01 0.438558E+01 0.219279E+01
+c   0.500000E+00 0.500000E+00 0.500000E+00
+c   0.211000E+00
+c   0.205794E+00-0.789792E-01 0.205794E+00
+c   0.107658E-01 0.930993E-01-0.190408E-01
+c   0.930993E-01 0.468188E-01 0.930993E-01
+c  -0.190408E-01 0.930993E-01 0.107658E-01
+c      1    1    1 -0.265929E-02
+c      1    1    2  0.270282E-01
+c      1    1    3 -0.774804E-02
+c      1    2    2  0.351051E-01
+c      1    2    3  0.285664E-01
+c      1    3    3 -0.774804E-02
+c      2    2    2 -0.244811E-01
+c      2    2    3  0.351051E-01
+c      2    3    3  0.270282E-01
+c      3    3    3 -0.265929E-02
+c      1    1    1    1  0.623374E-02
+c      1    1    1    2 -0.738617E-02
+c      1    1    1    3  0.198525E-01
+c      1    1    2    2 -0.189044E-01
+c      1    1    2    3  0.563030E-02
+c      1    1    3    3 -0.134957E-02
+c      1    2    2    2 -0.774377E-02
+c      1    2    2    3 -0.108400E-01
+c      1    2    3    3  0.563030E-02
+c      1    3    3    3  0.198525E-01
+c      2    2    2    2  0.217991E-01
+c      2    2    2    3 -0.774377E-02
+c      2    2    3    3 -0.189044E-01
+c      2    3    3    3 -0.738617E-02
+c      3    3    3    3  0.623374E-02
+c 

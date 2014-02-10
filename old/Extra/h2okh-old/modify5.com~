@@ -1,0 +1,4 @@
+ifort ../../Section_1/Utilities/tester junk4.f ../../Section_1/Utilities/utility.f -o junk4.x
+junk4.x <tester.dat >tester.out
+cat tester.out
+

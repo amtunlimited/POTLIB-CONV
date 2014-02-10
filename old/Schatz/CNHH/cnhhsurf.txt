@@ -1,0 +1,789 @@
+      subroutine surf(dhh,dchp,dnhp,dch,dcn,dnh,v)
+c Potential energy surface for CNHH.  Input distances are in bohr,
+c output energy in in hartrees. Note that you need to have the
+c file hcn_spln.dat in order to use this program. Here are the
+c atom labels:
+c
+c        h'   -    h    -    c     -     n
+c
+c The energy is set to be zero for H + HCN at equilibrium.
+c Note that it is important to insert the statement
+c call second(60)
+c in your calling program before calling surf.  This reads
+c in parameters and sets up initial values.
+c
+c This is Surface 3 for CN + HH -> HCN + H
+c The reference is:
+c M. ter Horst, G. C. Schatz and L. B. Harding, J. Chem. Phys. 105,558,1996
+c This paper presents the surface and quasiclassical trajectory studies
+c of the CN + H2 reaction.
+c 
+c Two other related papers are:
+c T. Takayanagi, M. ter Horst and G. C. Schatz, J. Chem. Phys.105,2309, 1996.
+c This paper presents reduced dimensionality quantum reactive scattering
+c studies of CN + HH -> HCN + H based on the RD3D, RD-AB and RBA methods
+c
+c M. ter Horst, K. S. Bradley and G. C. Schatz, in "100 Years after Bodenstein"
+c Symposium in Honor of Max Bodenstein, Ed. H. -R. Volpp and J. Wolfrum,
+c Springer Series in Chemical Physics Vol. 61, 1996, pp 144-154.
+c This paper presents quasiclassical trajectory studies of the H + HCN and
+c H + N2O reactions.  The H + HCN studies are based on surface 1 of ter Horst
+c et al (the first paper above).
+c
+c Here is a sample test program that can be used to access surf:
+c      implicit real*8(a-h,o-z)
+c      call second(60)
+c      read(5,*) dhh,dchp,dnhp,dch,dcn,dnh
+c      call surf(dhh,dchp,dnhp,dch,dcn,dnh,v)
+c      write(6,*) v
+c      end
+c Here are some energies from the test program:
+c input:
+c1.4,9.4,11.6,8.,2.21,10.2
+c output:
+c   3.4624758620530383E-02
+c input:
+c 10.,10.,10.,2.01,2.197,4.207
+c output:
+c   1.1055956007410828E-04
+c input:
+c 1.44,4.58,6.77,3.14,2.19,5.33
+c output:
+c    3.9055772286301971E-02
+c
+c     subroutine surf(dhh,dchp,dnhp,dch,dcn,dnh,v)
+c     subroutine surf(dhh,dchp,dnhp,dch,dcn,dnh,v,gaus1)
+c     subroutine surf(rhh,rchp,rnhp,rch,rcn,rnh,v)
+
+C   Adjusted frequencies at H2+CN->H+HCN saddle   May 17, '95
+c
+c
+c **   surf.f    ***
+c ** H2-CN PES   ***
+c ** Our version, using the H-C-N PES of Bowman et al. ***
+c ** IN ATOMIC UNITS ***
+      implicit real*8(a-h,o-z)
+      character*40 title
+      dimension r(3),vm(3)
+      common/forbch2/bch2
+c      data ifirst/1/
+c      if(ifirst.eq.1) then
+c      ifirst=0
+c      call second(60)
+c     write(51,*) "rhh,rchp,rnhp,rch,rcn,rnh"
+c      endif
+c scale Rch's to move H-H-C-N saddle
+      rch=dch
+      rchp=dchp
+      rnh=dnh
+      rnhp=dnhp
+      rcn=dcn
+      rhh=dhh
+c goto 207 to skip scaling
+c     goto 207
+      xlin1=rhh**2-(rch-rchp)**2
+c     swgs=exp(-1.0*(xlin1**2))
+      swch=0.5*(1.0 + tanh(10.0*(((rch+rchp)/2.0) - rch)))
+c     swnh=0.5*(1.0 + tanh(10.0*(((rnh+rnhp)/2.0) - rnh)))
+      rcha=(rchp*(1.0-swch) + rch*swch)
+      rchb=(rchp*swch + rch*(1.0-swch))
+      rnha=(rnhp*(1.0-swch) + rnh*swch)
+      rnhb=(rnhp*swch + rnh*(1.0-swch))
+c Hp => H2   &  H => H1
+      cth1=(-rchb**2+dhh**2+rcha**2)/(2.0*dhh*rcha)
+      cth2=(-rnha**2+rcha**2+dcn**2)/(2.0*rcha*dcn)
+      dcnhh=(rnhb**2-dcn**2-rcha**2-dhh**2+
+     &        2.0*dcn*rcha*cth2+2.0*rcha*dhh*cth1)
+     &        /(2.0*dcn*dhh)
+c       write(49,*) dcnhh
+        chscl= exp(-1.0*(xlin1**2)+
+     &      (-0.4*((rcha-3.1)**2+(rchb-4.6)**2))+
+     &      (-3.0*((dhh-1.5)**2))+
+     &      (-1.0*((dcn-2.19)**2)))
+        hhscl=0.5*(1.0-tanh(1.0*(rcha-3.0)))
+     &      *0.5*(1.0-tanh(1.0*(rchb-4.5)))
+     &      *exp(-1.0*(xlin1**2)
+     &      -3.0*((dhh-1.5)**2)
+     &      -1.0*((dcn-2.19)**2))
+c     pi=2.d0*asin(1.d0)
+      xscl=0.55
+      yscl=0.30
+        rchp=(rcha+xscl*chscl)
+        rhh=dhh-yscl*hhscl
+        rch=sqrt(rhh**2+rchp**2-2.0*rhh*rchp*cth1)
+        rnhp=sqrt(rchp**2+dcn**2-2.0*rchp*dcn*cth2)
+c       rnh=sqrt(dcn**2+rchp**2+rhh**2+2.0*dcn*rchp*cth2
+c    &           +2.0*rchp*rhh*cth1+2.0*dcn*rhh*dcnhh)
+        rnh=sqrt(dcn**2+rchp**2+rhh**2-2.0*dcn*rchp*cth2
+     &           -2.0*rchp*rhh*cth1+2.0*dcn*rhh*dcnhh)
+c     write(50,112) dch ,rchp
+c     write(51,112) dhh ,rhh
+  111 format(1x,3f15.6)
+  112 format(1x,2f15.6)
+  116 format('input:',6f15.6)
+  117 format('used:',6f15.6)
+c     write(51,116) dhh,dchp,dnhp,dch,dcn,dnh
+c     write(51,117) rhh,rchp,rnhp,rch,rcn,rnh
+c     write(52,*) (rcn**2+rchp**2+rhh**2+2.0*
+c    &    rcn*rchp*cth2+2.0*rchp*rhh*cth1),2.0*dcn*rhh*dcnhh
+  207 continue
+C ***************************************************
+C   5-17 adjust frequencies at saddle: C-H-H bend and H-H stretch
+      xlina=dchp+dcn+dhh-dnh
+      xlinb=dch+dcn+dhh-dnhp
+      cchha=(dchp**2+dhh**2-dch**2)/(2.0*dchp*dhh)
+      chcna=(dcn**2+dchp**2-dnhp**2)/(2.0*dcn*dchp)
+      cchhb=(dch**2+dhh**2-dchp**2)/(2.0*dch*dhh)
+      chcnb=(dcn**2+dch**2-dnh**2)/(2.0*dcn*dch)
+c 2-3 fhh=-1.46d-1
+c 2-3 fchh= 0.0d0
+c 2-3 fhcn=-0.04d0
+c 2-6 fhh=-1.63d-1
+      fhh=-1.8d-1
+c 2-6 fchh= 0.0015d0
+      fchh= 0.0016d0
+      fhcn=-0.042d0
+c added to reduce imaginary frequency
+c 1229fch=0.014
+c 2-3 fch=0.008
+c 2-6 fch=0.013
+      fch=0.008
+      fc1=0.6
+      fc2=2.0
+      fc3=2.0
+      fc4=1.0
+      freqa=0.5*exp(-fc1*(xlina**2)-fc2*(dchp-3.1000)**2
+     &      -fc3*(dhh-1.4900)**2-fc4*(dch-4.5900)**2)
+     &      *(fhh*(dhh-1.5300)**2+fchh*(cchha+1.0)
+     &      +fhcn*(chcna+1.0)+fch*(dchp-3.01)**2)
+      freqb=0.5*exp(-fc1*(xlinb**2)-fc2*(dch-3.1000)**2
+     &      -fc3*(dhh-1.4900)**2-fc4*(dchp-4.5900)**2)
+     &      *(fhh*(dhh-1.5300)**2+fchh*(cchhb+1.0)**1
+     &      +fhcn*(chcnb+1.0)+fch*(dch-3.01)**2)
+      freq=freqa+freqb
+  113 format(1x,4f15.6)
+C ***************************************************
+      r(1)=rch
+      r(2)=rcn
+      r(3)=rnh
+      call fpot(r,vhcn,vcn) 
+c     write(50,211)rch,rcn,rnh,vhcn
+ 211  format('H     ',3f15.6,f18.8)
+      r(1)=rchp
+      r(2)=rcn
+      r(3)=rnhp
+      call fpot(r,vhpcn,vcn)
+c     write(50,212)rchp,rcn,rnhp,vhpcn
+ 212  format('Hprime',3f15.6,f18.8,/,'-----------')
+      r(1)=rnh
+      r(2)=rhh
+      r(3)=rnhp
+      call surfnh2(vnh2,r,v3nh2,vm)
+      r(1)=rch
+      r(2)=rhh
+      r(3)=rchp
+      call surfch2(vch2,r,v3ch2,vm)
+      call fch2(rch,rhh,rchp,rnh,rnhp,rcn,rch2,ach2)
+      r1=rhh
+      r2=rchp
+      r3=rnhp
+      r4=rch
+      r5=rcn
+      r6=rnh
+      vmh2=0.1745*(1.-dexp(-1.0298*(r1-1.4011)))**2
+     &     -0.1745
+      anh2=0.93
+c--------------------------------------------------------------
+c now try to get proper 'oriention' of H2CN well
+c   NOTE: cos(-63.227)= 0.45045687 , sin(-63.227)= -0.89279819
+c         that's the angle L. Harding's H2CN well orientation
+c         makes with the R(C-H2) axis
+c         The location of the H2CN well is at (approx.)
+c            R(C-H2) = 1.09, R(H-H) = 3.60 bohr
+c         this will be the origin of the H2CN coordinate system
+c         (x' will be along H2CN well orientation and
+c          of course, y' will be perpendicular) this will
+c         allow (hopefully) adjustment of H2CN well widths
+      csth=0.45045687
+      snth=-0.89279819
+      xpo=1.19
+      ypo=3.63
+      xp=(rch2-xpo)*csth+(rhh-ypo)*snth
+      yp=-(rch2-xpo)*snth+(rhh-ypo)*csth
+
+      axp=0.5 
+      ayp=8.0
+      ag=-0.069 
+c  theta-HCN
+      cthcn=( -rnh**2+rch**2+rcn**2)/(2.0*rch*rcn)
+c theta-NCH'
+      ctnchp=(-rnhp**2+rcn**2+rchp**2)/(2.0*rcn*rchp)
+      chrf=2.24
+
+      gh2cn=exp(-axp*xp**2-ayp*yp**2)
+     & *exp(-1.0*((dnhp-4.0)**2+(dnh-4.0)**2))
+
+      gnh=1.0
+      adjfrq=-0.24*((dch-chrf)+(dchp-chrf))**2
+     & *exp(-2.0*((dch-chrf)**2+(dchp-chrf)**2))
+
+      adj2=    0.070*((dch-dchp)**2)
+     & *exp(-5.0*((dch-dchp)**2))
+
+      adj3=      1.0*(cthcn-ctnchp)**2
+     & *exp(-20.0*((cthcn-ctnchp)**2))
+      adj3=0.0
+
+      gth2cn=gnh*gh2cn*(ag+adjfrq+adj2+adj3)
+c     write(20,*) gth2cn
+c     write(21,*) gh2cn
+c     write(22,*) gnh*gh2cn*(ag+adj2)
+c     write(23,*) gnh*gh2cn*(ag+adj3)
+c--------------------------------------------------------------
+c vh (1-5h) follows
+      rdg=0.05*exp(-0.8*(rch2-2.2)**2-0.6*(rhh-2.0)**2
+     &              -2.0*(rcn-2.19)**2)
+c     write(24,*)rdg
+c--------------------------------------------------------------
+      v=vhcn+vhpcn-vcn+ach2*v3ch2+anh2*v3nh2+vmh2
+c     r1=rhh
+c     r2=rchp
+c     r3=rnhp
+c     r4=rch
+c     r5=rcn
+c     r6=rnh
+      call sbgaus(dhh,dchp,dnhp,dch,dcn,dnh,agaus)
+c     call sbgaus(r1,r2,r3,r4,r5,r6,agaus)
+c     write(41,*) agaus
+      call sbgaus(dhh,dch,dnh,dchp,dcn,dnhp,bgaus)
+c     call sbgaus(r1,r4,r6,r2,r5,r3,bgaus)
+c     write(43,*) bgaus
+      
+      gaus1=agaus+bgaus
+      v=v+gaus1+rdg+gth2cn+freq
+c sets V with respect to V(HCN)=0 
+c     v=v+0.4952558146089D+00
+      v=v+0.4954724530326D+00
+      
+c V for H+HCN (without any additional adjustments) 1/24/96
+cfinal energy (vc) -0.4954724530326D+00(rs)
+c  kcal/mole=   -310.91393890 and geometry
+
+c------------------------------------------------------------
+c     v=vhcn+vhpcn-vcn+ach2*v3ch2+anh2*v3nh2+vmh2+gh2cn
+c     write(30,*) ach2*v3ch2
+c     write(31,*) anh2*v3nh2
+c     write(32,*) gh2cn
+c     write(33,*) vhcn
+c     write(34,*) vhpcn
+c     write(35,*) vcn
+cc    write(54,*) rch,gh2cn
+cc    write(55,*) rchp,vhpcn+0.4952558146089D+00
+cc    write(56,*) rchp-1.48,vhpcn+0.4952558146089D+00
+c     write(32,*) rch,v
+c     write(38,*) agaus
+c     write(39,*) bgaus
+c     write(7,*) 'vhcn,vhpcn,vcn ', vhcn,vhpcn, vcn
+c     write(7,*) 'ach2,v3ch2 ', ach2,v3ch2 
+c     write(7,*) 'anh2,v3cn2 ', anh2,v3nh2 
+c     write(7,*) 'gh2cn,gaus1 ',gh2cn,gaus1
+c------------------------------------------------------------
+      return
+      end
+      subroutine sbgaus(r1,r2,r3,r4,r5,r6,gaus)
+c   
+c  Calculate the first gaussian - used to fill HCN-H well
+c
+      implicit real*8 (a-h,o-z)
+      pi=2.d0*asin(1.d0)
+      i=i+1
+      j=mod(i,2)
+      gaus=0.0
+c------------------------------------------------------------
+c  on the first pass  (switch h for hp on 2nd)
+c     r1=rhh
+c     r2=rchp
+c     r3=rnhp
+c     r4=rch
+c     r5=rcn
+c     r6=rnh
+      ct1=(-r2**2+r5**2+r3**2)/(2.0*r5*r3)
+c cos(th H1-N-C)= -Rch1^2+Rcn^2+Rnh1^2)/(2RcnRnh1
+      ct2=(-r6**2+r5**2+r4**2)/(2.0*r5*r4)
+c cos(th N-C-H2)= -Rnh2^2+Rcn^2+Rch2^2)/(2RcnRch2
+      dnhch=0.5*(r1**2-r3**2-r5**2-r4**2+2.0*r3*r5*ct1+
+     &             2.0*r4*r5*ct2)
+c _Rnh1_ dot _Rch2_ = (Rhh^2-Rnh1^2-Rcn^2-Rch2^2
+c                     +2*Rnh1*Rcn*ct1+2*Rch2*Rcn*ct2)/2
+      ctd=(r4*ct2*r3*ct1-dnhch)/(r4*r3)
+c cos(tau-D)=(rcn*rch2*ct2*rcn*rnh1*ct1-rcn^2*dnhch)/
+c                   (rcn^2*rch2*rnh1)
+      if(ct1.lt.-1.0) ct1=-1.0
+      if(ct1.gt. 1.0) ct1= 1.0
+      th1=acos(ct1)
+      if(ct2.lt.-1.0) ct2=-1.0
+      if(ct2.gt. 1.0) ct2= 1.0
+      th2=acos(ct2)
+c     write(54+j,*) th1*180.0/pi
+  137 format(4f10.4)
+  135 format(a26,2f14.8,e18.9)
+c  ctd => cos(tau-D)
+c  tau is the torsional (dihedral)  angle
+c the "2" parameters are for the C-H bond
+c Bair and Dunning have V=-11 rch=2.08, rcn=2.38, rnhp=1.95 , 
+c     trans-HCNH    rchp=3.6390,  rnh=3.9585
+c               theta1=125  theta2=114
+
+      agm1=0.25
+      agm2=0.505
+
+      scale1=0.135
+      ar1=0.5
+      ast1=0.25
+      ar2=0.5
+      ast2=1.10
+      ar=0.8
+      ar6=0.07
+      act1=0.82
+c (th1-pi)^2 leads to terms linear in th1 for th1~0
+c (th2-pi)^2 leads to terms linear in th2 for th2~0
+
+      st1=sin(th1)
+      st2=sin(th2)
+      gaus1=scale1*exp(-ar1*(r3-1.9)**2-ast1*(st1)**2
+     x -ar2*(r4-2.07)**2-ast2*(st2)**2-ar*(r5-2.23)**2)
+
+      at1=(0.005)/scale1
+      at2= 4.00
+      at3=(0.121)/scale1
+      at4= 1.48
+      at5= 3.00
+      at6= 3.00
+c here cos(tau-D) = ctd/(st1*st2) = 0 for cis - HCNH
+c for cis
+      aa=1.0+at1*exp(-at2*(ctd-1.0)**2)
+c for proper (cos(tau-D) - 1.0) use ctd-st1*st2
+c for cis-trans saddle
+      ab=1.0+at3*exp(-at4*ctd**2-at5*(ct1+1.0)**2)
+
+      gaus=gaus1*aa*ab
+
+      return
+      end
+
+      subroutine fch2(rch,rhh,rchp,rnh,rnhp,rcn,rch2,ach2)
+c   
+c  Calculate corrections to the ch2 three body term
+c
+      implicit real*8 (a-h,o-z)
+      common/forbch2/bch2
+c     dimension rs(6)
+c     rch=rs(1)
+c     rhh=rs(2)
+c     rchp=rs(3)
+c     rnh=rs(4)
+c     rnhp=rs(5)
+c     rcn=rs(6)
+c*************************
+      sw=0.5*(1.0 + tanh(10.0*(((rch+rchp)/2.0) - rch)))
+      cha=rchp*(1.0-sw) + rch*sw
+c     rnha=rnhp*(1.0-sw) + rnh*sw
+      chb=rchp*sw + rch*(1.0-sw)
+      rch2=sqrt(0.5*(rchp**2+rch**2-0.5*rhh**2))
+
+c from y=-1.2*x+5.2 and y=1.5*x-2 where y==rhh   x==rch2
+      cxh=0.25*(1.+tanh(-1.*(-1.2*rch2+5.2-rhh)))
+     & *(1.+tanh(-1.*(1.5*rch2-2.0-rhh)))
+      dxh=-0.18
+
+c1229 bch2= (0.2400*0.5*(1.0-tanh(1.6*(cha-4.0))))
+c2-6  bch2= (0.2310*0.5*(1.0-tanh(1.6*(cha-4.0))))
+      bch2= (0.2200*0.5*(1.0-tanh(1.6*(cha-4.0))))
+     & *0.5*(1.0-tanh(1.6*(chb-7.4)))
+     & *0.5*(1.0-tanh(1.2*(rhh-3.5)))
+
+      ach2= 0.530 +bch2+dxh*cxh
+
+      return
+      end
+      subroutine fpot(rsi,pot,vcn)
+c      subroutine hcnpot (rbig, gamma, rsmal, pot)
+c-----------------------------------------------------------------------
+c     this subroutine computes the value of the hcn potential for
+c     values of the three jacobi coordinates.
+c
+c          x1 = R (in a.u.) -- the H-(CN) distance
+c          x2 = gamma (in radians)
+c                the angle between R and r
+c          x3 = r (in a.u.) -- the CN distance
+c          pot = electronic potential in hartrees
+c         the calling program needs to call second(io) before calling
+c         hcnpot
+c-----------------------------------------------------------------------
+      implicit real*8 (a-h,o-z)
+      parameter (nr=12, nthet=19)
+      common /a/ re (nr,nthet), ae (nr,nthet)
+      common /b/ ve (nr,nthet), de (nr,nthet)
+      common /c/ x1a (nr), x2a (nthet)
+      common /d/ ry2a (nr,nthet), ay2a (nr,nthet)
+      common /e/ vy2a (nr,nthet), dy2a (nr,nthet)
+      common/range/alph1,alph2
+      dimension rs(3),rsi(3)
+c first set are the original values
+      data rein,dein,aein,vein/2.2144d0,0.287d0,1.3436d0,93.07796d0/
+c redetermined from Huber and Herzberg, p.154
+c     data recn,decn,aecn/2.2144d0,0.2897d0,1.3439d0/
+      data beta/3.12d-03/
+      data gamn/0.461642d0/,gamc/0.538358d0/,gamcn/0.2485d0/
+     + ,gamm/0.076716d0/
+c rr(1)=ch
+c rr(2)=cn
+c rr(3)=nh
+      rs(1)=rsi(1)
+      rs(2)=rsi(2)
+c get garbage from abpcd2n.f  May 5, 1994
+c     rs(3)=rsi(3)
+c when NOT using -0.00015d0
+c     rs(3)=rsi(3)-0.00015d0
+c gave rbig=NaN for rs1=1.2,rs2=2.2291,rs3=1.02910
+c  gamcn*rs(2)**2 .gt. gamc*rs(3)**2+gamn*rs(1)**2 by 2.5e-5
+      rs(3)=rsi(3)-0.00012d0
+      rsmal=rs(2)
+      vcn=dein*(1.d0-dexp(-aein*(rsmal-rein)))**2-dein
+c     vcn=decn*(1.d0-dexp(-aecn*(rsmal-recn)))**2-decn
+      rbig=dsqrt((gamn*rs(1)**2)+(gamc*rs(3)**2)-(gamcn*rs(2)**2))
+      cosg=(rs(3)**2-rs(1)**2+gamm*rs(2)**2)/(2.d0*rs(2)*rbig) 
+      if(cosg.gt.1.d0) cosg=1.d0
+c this corresponds to H-C-N
+      if(cosg.lt.-1.d0) cosg=-1.d0
+c this corresponds to H-N-C
+      gamma=acos(cosg)
+c     gd=gamma*180.d0/3.141592654d0
+
+ 11   format(3f15.6)
+      if(rbig.gt.x1a(10)) then
+      x1=x1a(10)
+      x2=gamma
+      x3=rsmal 
+      call splin2 (X1A, X2A, re, ry2a, nr, nthet, X1, X2, rr)
+      call splin2 (X1A, X2A, ae, ay2a, nr, nthet, X1, X2, aa)
+      call splin2 (X1A, X2A, ve, vy2a, nr, nthet, X1, X2, vv)
+      call splin2 (X1A, X2A, de, dy2a, nr, nthet, X1, X2, dd)
+c,  rr,vv,aa, and dd are Morse parameters at edge of R-grid.  Extapolate
+c   them next to actual value of rbig.
+      damp1=dexp(-alph1*(rbig-x1a(10)))
+      damp2=dexp(-alph2*(rbig-x1a(10)))
+      rr=(rr-rein)*damp1+rein
+      aa=(aa-aein)*damp1+aein
+      dd=(dd-dein)*damp1+dein
+      vv=(vv-vein)*damp2+vein
+      else
+      if(rbig.lt.1.50d0) then
+c.. extapolate Ve only and keep the other Morse parameters as is for
+c..R = 1.5 and gamma whatever it is.
+      x1=x1a(1)
+      x2=gamma
+      x3=rsmal
+      call splin2 (X1A, X2A, re, ry2a, nr, nthet, X1, X2, rr)
+      call splin2 (X1A, X2A, ae, ay2a, nr, nthet, X1, X2, aa)
+      call splin2 (X1A, X2A, ve, vy2a, nr, nthet, X1, X2, vv)
+      call splin2 (X1A, X2A, de, dy2a, nr, nthet, X1, X2, dd)
+      vv=vv*dexp(beta*(rbig-x1))
+      else
+      x1=rbig
+      x2=gamma
+      x3=rsmal
+      call splin2 (X1A, X2A, re, ry2a, nr, nthet, X1, X2, rr)
+      call splin2 (X1A, X2A, ae, ay2a, nr, nthet, X1, X2, aa)
+      call splin2 (X1A, X2A, ve, vy2a, nr, nthet, X1, X2, vv)
+      call splin2 (X1A, X2A, de, dy2a, nr, nthet, X1, X2, dd)
+      end if
+      end if
+      call morse (x3, dd, aa, rr, vv, V)
+c     pot=v
+c     write (20,*) rbig,rsmal,pot
+c     write (30,*) rbig,gamma*180.d0/(4.d0*datan(1.d0)),pot
+c     write (40,*) rbig,gamma*180.d0/(4.d0*datan(1.d0)),pot
+c     write(91,*) v
+      pot=v+vein-dein
+c         v+93.07796-0.287
+c
+c ADDING 93.07796  scales so De(HCN)=45700cm-1/0.208225hartree
+c   which is w.r.t. H+CN. 
+c ADDING -dein accounts for the dissociation of the CN bond
+c   this gives V(HCN)=-0.4952168 at equilibrium {this gives
+c   the global minimum for V(HCN), w.r.t. H+C+N}, and
+c   V(H'CN)=-0.2867811.  Also V(CN)=-0.28682018
+
+      return
+      end
+
+
+      subroutine second(io)
+c----------------------------------------------------------------------
+c     this subroutine computes the second-derivative table for the
+c     morse parameters. this subroutine is called once by the
+c     main program.
+c----------------------------------------------------------------------
+      implicit real*8 (a-h,o-z)
+      parameter (nr=12, nthet=19)
+      common /a/ re (nr,nthet), ae (nr,nthet)
+      common /b/ ve (nr,nthet), de (nr,nthet)
+      common /c/ x1a (nr), x2a (nthet)
+      common /d/ ry2a (nr,nthet), ay2a (nr,nthet)
+      common /e/ vy2a (nr,nthet), dy2a (nr,nthet)
+      common/range/alph1,alph2
+      open (unit=io,file='hcn_spln.dat',status='old')
+c     write (20,*)" The subroutine 'second(io)' has been called"
+      read(io,*) alph1,alph2
+      do 10 i = 1, nr
+      read (io,*) x1a (i)
+   10 continue
+      do 20 i = 1, nthet
+      read (io,*) x2a (i)
+   20 continue
+      do 40 j = 1, nthet
+      do 30 i = 1, nr
+      read (io,*) de (i,j)
+      read (io,*) ae (i,j)
+      read (io,*) re (i,j)
+      read (io,*) ve (i,j)
+   30 continue
+   40 continue
+      rmin1 = 10000.0
+      rmax1 = -100.0
+      rmin2 = 10000.0
+      rmax2 = -100.0
+      rmin3 = 10000.0
+      rmax3 = -100.0
+      rmin4 = 10000.0
+      rmax4 = -100.0
+      do 140 j = 1, nthet
+      do 130 i = 1, nr
+      if (de (i,j) .lt. rmin1) rmin1 = de (i,j)
+      if (de (i,j) .gt. rmax1) rmax1 = de (i,j)
+      if (ae (i,j) .lt. rmin2) rmin2 = ae (i,j)
+      if (ae (i,j) .gt. rmax2) rmax2 = ae (i,j)
+      if (re (i,j) .lt. rmin3) rmin3 = re (i,j)
+      if (re (i,j) .gt. rmax3) rmax3 = re (i,j)
+      if (ve (i,j) .lt. rmin4) rmin4 = ve (i,j)
+      if (ve (i,j) .gt. rmax4) rmax4 = ve (i,j)
+  130 continue
+  140 continue
+
+c      write (6,*) rmin1, rmax1
+c      write (6,*) rmin2, rmax2
+c      write (6,*) rmin3, rmax3
+c      write (6,*) rmin4, rmax4
+
+      call splie2 (X1A, X2A, re, nr, nthet, ry2a)
+      call splie2 (X1A, X2A, ae, nr, nthet, ay2a)
+      call splie2 (X1A, X2A, ve, nr, nthet, vy2a)
+      call splie2 (X1A, X2A, de, nr, nthet, dy2a)
+      return
+      end
+
+
+      SUBROUTINE MORSE (R, D, ALPH, REQ, VE, V)
+C-----------------------------------------------------------------------
+C     compute the value of the morse potential
+C-----------------------------------------------------------------------
+      implicit real*8 (a-h,o-z)
+      vterm = 1.0 - EXP (-ALPH * (R - REQ))
+      V = D * vterm * vterm - VE
+      RETURN
+      END
+
+
+      SUBROUTINE SPLIE2(X1A,X2A,YA,M,N,Y2A)
+      implicit real*8 (a-h,o-z)
+      PARAMETER (NN=100)
+      DIMENSION X1A(M),X2A(N),YA(M,N),Y2A(M,N),YTMP(NN),Y2TMP(NN)
+      DO 13 J=1,M
+        DO 11 K=1,N
+          YTMP(K)=YA(J,K)
+11      CONTINUE
+c        CALL SPLINE1(X2A,YTMP,N,1.E30,1.E30,Y2TMP)
+c       CALL SPLINE1(X2A,YTMP,N,0.0E0,0.0E0,Y2TMP)
+        CALL SPLINE1(X2A,YTMP,N,0.0d0,0.0d0,Y2TMP)
+        DO 12 K=1,N
+          Y2A(J,K)=Y2TMP(K)
+12      CONTINUE
+13    CONTINUE
+      RETURN
+      END
+
+
+      SUBROUTINE SPLIN2(X1A,X2A,YA,Y2A,M,N,X1,X2,Y)
+      implicit real*8 (a-h,o-z)
+      PARAMETER (NN=100)
+      DIMENSION X1A(M),X2A(N),YA(M,N),Y2A(M,N),YTMP(NN),Y2TMP(NN),YYTMP(
+     *NN)
+      DO 12 J=1,M
+        DO 11 K=1,N
+          YTMP(K)=YA(J,K)
+          Y2TMP(K)=Y2A(J,K)
+11      CONTINUE
+        CALL SPLINT(X2A,YTMP,Y2TMP,N,X2,YYTMP(J))
+12    CONTINUE
+c     CALL SPLINE1(X1A,YYTMP,M,1.E30,1.E30,Y2TMP)
+      CALL SPLINE1(X1A,YYTMP,M,1.d30,1.d30,Y2TMP)
+      CALL SPLINT(X1A,YYTMP,Y2TMP,M,X1,Y)
+      RETURN
+      END
+
+
+      SUBROUTINE SPLINE1(X,Y,N,YP1,YPN,Y2)
+      implicit real*8 (a-h,o-z)
+      PARAMETER (NMAX=100)
+      DIMENSION X(N),Y(N),Y2(N),U(NMAX)
+c     IF (YP1.GT..99E30) THEN
+      IF (YP1.GT..99d30) THEN
+        Y2(1)=0.
+        U(1)=0.
+      ELSE
+        Y2(1)=-0.5
+        U(1)=(3./(X(2)-X(1)))*((Y(2)-Y(1))/(X(2)-X(1))-YP1)
+      ENDIF
+      DO 11 I=2,N-1
+        SIG=(X(I)-X(I-1))/(X(I+1)-X(I-1))
+        P=SIG*Y2(I-1)+2.
+        Y2(I)=(SIG-1.)/P
+        U(I)=(6.*((Y(I+1)-Y(I))/(X(I+1)-X(I))-(Y(I)-Y(I-1))
+     *      /(X(I)-X(I-1)))/(X(I+1)-X(I-1))-SIG*U(I-1))/P
+11    CONTINUE
+c     IF (YPN.GT..99E30) THEN
+      IF (YPN.GT..99d30) THEN
+        QN=0.
+        UN=0.
+      ELSE
+        QN=0.5
+        UN=(3./(X(N)-X(N-1)))*(YPN-(Y(N)-Y(N-1))/(X(N)-X(N-1)))
+      ENDIF
+      Y2(N)=(UN-QN*U(N-1))/(QN*Y2(N-1)+1.)
+      DO 12 K=N-1,1,-1
+        Y2(K)=Y2(K)*Y2(K+1)+U(K)
+12    CONTINUE
+      RETURN
+      END
+
+
+      SUBROUTINE SPLINT(XA,YA,Y2A,N,X,Y)
+      implicit real*8 (a-h,o-z)
+      DIMENSION XA(N),YA(N),Y2A(N)
+      KLO=1
+      KHI=N
+1     IF (KHI-KLO.GT.1) THEN
+        K=(KHI+KLO)/2
+        IF(XA(K).GT.X)THEN
+          KHI=K
+        ELSE
+          KLO=K
+        ENDIF
+      GOTO 1
+      ENDIF
+      H=XA(KHI)-XA(KLO)
+      IF (H.EQ.0.) PAUSE 'Bad XA input.'
+      A=(XA(KHI)-X)/H
+      B=(X-XA(KLO))/H
+      Y=A*YA(KLO)+B*YA(KHI)+
+     *      ((A**3-A)*Y2A(KLO)+(B**3-B)*Y2A(KHI))*(H**2)/6.
+      RETURN
+      END
+
+
+      subroutine surfch2(v,r,v3,vm)
+      implicit double precision (a-h,o-z)
+      dimension r(3),re(3),del(3),bet(3),q(3)
+      dimension a(3),vm(3),de(3)
+c ************************************
+c parameters are in atomic units
+c original Morse & Sato parameters
+c     data de/0.2273,0.1746,0.2273/
+c     data re/2.0144,1.4022,2.0144/
+c     data bet/0.9832,1.0277,0.9832/
+c     data del/0.15,0.10,0.15/
+c - - - - - - - - - - - - - - - - - 
+c 'experimental' Morse & Sato parameters
+c from Huber and Herzberg
+c see page 91 in JNU1 (Journal 1)
+c parameters are in atomic units
+c     data de/0.1338,0.1745,0.1338/
+c     data re/2.1163,1.4011,2.1163/
+c     data bet/1.0366,1.0298,1.0366/
+c - - - - - - - - - - - - - - - - - 
+c from H+HCN modifications
+c PRE-Dec. 19 values (ie. 11-15)
+      data del/0.05,0.10,0.05/
+      data de/0.1450,0.1745,0.1450/
+      data re/2.4000,1.4011,2.4000/
+      data bet/0.9500,1.0298,0.9500/
+c *********************
+c 1st from DEC 21
+c     data del/0.15,0.10,0.15/
+c     data de/0.1450,0.1745,0.1450/
+c     data re/2.4000,1.4011,2.4000/
+c     data bet/0.9500,1.0298,0.9500/
+c ************************************
+      sum=0.
+c note 
+c     rch=r(1)
+c     rchp=r(3)
+       do 11 i=1,3
+      ex=dexp(-bet(i)*(r(i)-re(i)))
+      vm(i)=de(i)*(1.-ex)**2-de(i)
+      q(i)=0.25e0*de(i)*((3.e0+del(i))*ex**2-(2.e0+6.e0*del(i))*ex)/
+     1   (1.e0+del(i))
+      a(i)=0.25e0*de(i)*((1.e0+3.e0*del(i))*ex**2-(6.e0+2.e0*del(i))
+     1   *ex)/ (1.e0+del(i))
+      sum=sum+vm(i)
+   11 continue
+      u=q(1)+q(2)+q(3)-sqrt(a(1)**2+a(2)**2+a(3)**2-a(1)*a(2)-
+     1   a(2)*a(3)-a(1)*a(3))
+      v=u
+      v3=v-sum
+      return
+      end
+      subroutine surfnh2(v,r,v3,vm)
+      implicit double precision (a-h,o-z)
+      dimension r(3),re(3),del(3),bet(3),q(3)
+      dimension a(3),de(3),vm(3),be(3)
+c *******************************
+c from Sun and Bowman           
+c dsb(SB)=0.00735
+c rsb(SB)=4.6298 
+c bsb(SB)=3.4397 
+c     data dsb/0.00735,0.1745,0.00735/
+c     data rsb/4.6298,1.4011,4.6298/
+c     data bsb/3.4397,1.0298,3.4397/
+c these Sato params are taken from Sun & Bowman's CH2 LEPS
+c     data dlsb/0.15,0.10,0.15/
+c *******************************
+c    All H-H and re(N-H)  from Huber/Herzberg 
+c    de and bet of N-H from G.S. 
+c    Sato's (dlgs) can be adjusted 
+      data de/0.13491,0.1745,0.13491/
+      data re/1.95815,1.4011,1.95815/
+      data bet/1.19191,1.0298,1.19191/
+      data del/0.15,0.10,0.15/
+c *******************************
+      sum=0.
+      do 11 i=1,3
+      ex=dexp(-bet(i)*(r(i)-re(i)))
+      vm(i)=de(i)*(1.-ex)**2-de(i)
+      q(i)=0.25e0*de(i)*((3.e0+del(i))*ex**2-(2.e0+6.e0*del(i))*ex)/
+     1   (1.e0+del(i))
+      a(i)=0.25e0*de(i)*((1.e0+3.e0*del(i))*ex**2-(6.e0+2.e0*del(i))
+     1   *ex)/ (1.e0+del(i))
+      sum=sum+vm(i)
+   11 continue
+      u=q(1)+q(2)+q(3)-sqrt(a(1)**2+a(2)**2+a(3)**2-a(1)*a(2)-
+     1   a(2)*a(3)-a(1)*a(3))
+      v=u
+      v3=v-sum
+      return
+      end
+
+
+
+
