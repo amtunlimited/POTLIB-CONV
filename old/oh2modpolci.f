@@ -1,0 +1,706 @@
+        SUBROUTINE PREPOT
+C
+C   ANTI-MORSE BENDING POTENTIAL
+C
+C   GENERAL INFORMATION
+C
+C          SUBROUTINE BEND WILL ADD A BENDING CORRECTION TO ANY
+C          COLLINEAR POTENTIAL SUBROUTINE.
+C
+C          PREBEND MUST BE CALLED BEFORE ANY CALLS TO BEND
+C          CAN BE MADE.  THE POTENTIAL PARAMETERS FOR THE COL-
+C          LINEAR POTENTIAL ARE READ IN BY A CALL TO PREPOT
+C          (CONTAINED IN PREBEND).  THEN THE BENDING PARAMETERS ARE
+C          COORDINATES, POTENTIAL ENERGY, AND DERIVATIVES ARE
+C          PASSED THROUGH COMMON /PT31CM/ R(3), ENERGY, DEDR(3).
+C
+C          NO CALLS TO POT OR PREPOT ARE NEEDED IN THE MAIN PROGRAM.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      REAL*8 NAB,NAB1,NBC,NBC1
+      DIMENSION DBCOOR(2),REQ(3),GAMP(3)
+C     CHARACTER*80 DATAF                                                07AUG83
+      COMMON /PT31CM/ R(3), ENERGY, DEDR(3)
+      COMMON /PT35CM/ EASYAB, EASYBC, EASYAC
+      COMMON /PT34CM/ IPRT, IRD1
+      DATA TOL /1.D-5/
+C
+      IRD1 = 4
+      IPRT = 6
+C
+C   READ IN DATA FILE NAME                                              07AUG83
+C     READ(9,900,ERR=1110) DATAF                                        07AUG83
+C     WRITE(6,6101) DATAF                                               07AUG83
+C     IF(DATAF.EQ.' ') GO TO 1110                                       07AUG83
+C     OPEN (UNIT=8,ERR=1100,FILE=DATAF,FORM='FORMATTED',READONLY,       07AUG83
+C    1 STATUS='OLD')                                                    07AUG83
+C
+      OPEN (UNIT=IRD1, FILE='potoh2m2.dat', FORM='FORMATTED',
+     *      STATUS='OLD', ERR=1100)
+      GO TO 1110                                                        07AUG83
+ 1100 WRITE(6,6100)                                                     07AUG83
+      CALL EXIT                                                         07AUG83
+ 1110 CONTINUE                                                          07AUG83
+C
+C      READ COLLINEAR POTENTIAL PARAMETERS
+C
+      WRITE (6,600)
+C     READ (8,800) IDIREC
+      READ (IRD1,800) IDIREC
+      WRITE (6,800) IDIREC
+      CALL PREPT2(IDIREC)
+C
+C      READ BENDING POTENTIAL PARAMETERS
+C
+      WRITE (6,601)
+C
+C  DISSOCIATION ENERGY IN KCAL/MOLE
+C
+C     READ (8,801) DE
+      READ (IRD1,801) DE
+      WRITE (6,602) DE
+C
+C  READ IN MORSE BETAS--RECIPROCAL ANGSTROMS
+C
+C     READ (8,802) BETA
+      READ (IRD1,802) BETA
+      WRITE (6,603) BETA
+C
+C  READ IN THE EQUILIBRIUM DISTANCES IN ANGSTROMS
+C
+C     READ (8,802) (REQ(IT), IT = 1,3)
+      READ (IRD1,802) (REQ(IT), IT = 1,3)
+      WRITE (6,604) (REQ(IT), IT = 1,3)
+C
+C  READ IN THE PAULING PARAMETER IN ANGSTROMS
+C
+C     READ (8,801) A
+      READ (IRD1,801) A
+      WRITE (6,605) A
+C
+C  READ IN GAMMA PARAMETERS FOR THE BEND CORRECTION
+C
+C     READ (8,801) GAMP
+      READ (IRD1,801) GAMP
+      WRITE (6,606) GAMP
+C
+C  READ IN RBB IN ANGSTROMS--THIS NUMBER IS USED
+C  IN A SCALING CALCULATION FOR THE BENDING CORRECTION
+C
+C     READ (8,801) RBB
+      READ (IRD1,801) RBB
+      WRITE (6,607) RBB
+C
+C      CLOSE (UNIT=8)
+       CLOSE (UNIT=IRD1)
+C
+C    USEFUL CONSTANTS
+C
+C          CONVERSTION FOR ANGSTROMS TO BOHR (ANGSTROM/BOHR)
+C
+      BOHR = .52917706D0
+C
+C          CONVERSION FOR KCAL TO HARTREE (KCAL/HARTREE)
+C
+      HARTREE = 627.5095D0
+C
+C       CONVERT TO ATOMIC UNITS
+C
+      DO 50 IT = 1,3
+         REQ(IT) = REQ(IT)/BOHR
+   50 CONTINUE
+      BETA = BETA * BOHR
+      DE = DE/HARTREE
+      A = A/BOHR
+      RHH = 0.74144D0 / BOHR
+      RBB = RBB /BOHR
+
+      EASYAB = 92.4D0 / HARTREE
+      EASYBC = 95.3D0 / HARTREE
+      EASYAC = 92.4D0 / HARTREE
+
+      RETURN
+  600 FORMAT (/T30,30HCOLLINEAR POTENTIAL PARAMETERS )
+  800 FORMAT (1X,I4)
+  601 FORMAT (/T30,28HBENDING POTENTIAL PARAMETERS )
+  801 FORMAT (3F20.10)
+  602 FORMAT (/1X,32H DISSOCIATION ENERGY (KCAL/MOLE),T50,3F20.10)
+  802 FORMAT (3F20.10)
+  603 FORMAT (1X,33HMORSE BETA (RECIPROCAL ANGSTROMS),T50,3F20.10)
+  604 FORMAT (1X,33HEQUILIBRIUM DISTANCES (ANGSTROMS),T50,3F20.10)
+  605 FORMAT (1X,29HPAULING PARAMETER (ANGSTROMS),T50,F20.10)
+  606 FORMAT (1X,'GAMMA PARAMETERS',T50,3F20.10)
+  607 FORMAT (1X,15HRBB (ANGSTROMS),T50,F20.10)
+  900 FORMAT(1X,A80)                                                    07AUG83
+ 6101 FORMAT(' POTENTIAL DATA FROM FILE',T40,A80)                       07AUG83
+ 6100 FORMAT(' PROBLEM WITH POTENTIAL DATA FILE, CHECK FILE NAME')      07AUG83
+C
+      ENTRY POT
+C
+      IF (R(1) .GT. TOL .AND. R(2) .GT. TOL .AND. R(3) .GT. TOL) THEN
+         IF (IDIREC .LT. 0) THEN
+            T = R(1)
+            R(1) = R(2)
+            R(2) = T
+         END IF
+         RACCOL = R(1) + R(2)
+         BCOOR = 0.0D0
+         DBCOOR(1) = 0.0D0
+         DBCOOR(2) = 0.0D0
+         DAC = 0.0D0
+         ROB = 1.0D0
+         IF(ABS(RHH-RBB).GT.1.D-10) THEN
+C
+C     FIRST CALCULATE SOME USEFUL NUMBERS
+C     NAB AND NBC ARE THE BOND ORDERS OF THE DIATOMICS
+C     AB AND BC RESPECTIVELY. (EQUATION 2.2)
+C
+            NAB = EXP((REQ(1) - R(1))/A)
+            IF (NAB.LT.1.D-15) NAB = 1.D-15
+            NBC = EXP((REQ(2) - R(2))/A)
+            IF (NBC.LT.1.D-15) NBC = 1.D-15
+C
+C       CALCULATE BOND ORDERS ALONG THE REACTION COORDINATE
+C       SEE EQUATION 2.7A, 2.7B
+C
+            C = 1.D0 - NAB/NBC
+            IF (ABS(C) .LT. 1.D-14) THEN
+               NAB1=.5D0
+               NBC1=.5D0
+            ELSE
+               C = C/NAB
+               NAB1 = (2.D0 + C - SQRT(4.D0+C*C))/(2.D0*C)
+               NBC1 = 1.D0 - NAB1
+            END IF
+C
+C          ROB IS USED IN THE BENDING POTENTIAL CALCULATIONS
+C          FIRST TRAP OUT ANY ZERO ARGUMENTS
+C
+            IF (NAB1*NBC1 .LE. 0.0D0) THEN
+               ROB = 1.
+            ELSE
+               STUFF = A * LOG(NAB1*NBC1)
+               T = RHH - STUFF
+               ROB = 1.0D0
+               IF(ABS(T).GT.1.D-15) ROB = (RBB - STUFF)/T
+            END IF
+         END IF
+C
+C        CALCULATE BENDING CORRECTION
+C        EVALUATE GAMMA AND DERIVATIVE
+C
+         EX = EXP(RACCOL*(GAMP(2) + GAMP(3)*RACCOL))
+         GAMMA = GAMP(1) + EX
+         DGAM = (GAMP(2) + 2.D0*GAMP(3)*RACCOL)*EX
+         GAMMA = GAMMA*DE
+         DGAM = DGAM*DE
+C
+C           CALCULATE V(R(3)) TERM
+C
+         EX = EXP(-BETA*(R(3)-REQ(3))/ROB)
+         EX1 = EX*(1.D0 + 0.5D0*EX)
+         DEX1 = EX*(1.D0 + EX)
+C
+C           CALCULATE V(R(1)+R(2)) TERM
+C
+         EX = EXP(BETA*(REQ(3)-R(2)-R(1))/ROB)
+         EX2 = EX*(1.D0 + 0.5D0*EX)
+         DEX2 = EX*(1.D0 + EX)
+C
+C        HERE IS THE BENDING CORRECTION
+C
+         BCOOR = GAMMA*(EX1 - EX2)
+C
+C        WHILE IT'S CONVENIENT, CALCULATE THE DERIVATIVE
+C        OF BCOOR WITH RESPECT TO R(1)  R(2) AND R(3).
+C        CALCULATE DAC (THE DERIVATIVE WITH RESPECT TO R(3))
+C
+         GAMMA = GAMMA*BETA/ROB
+         DAC = -GAMMA*DEX1
+C
+C          CALCULATE CORRECTIONS TO DAB, DBC
+C
+         DBCOOR(1) = GAMMA*DEX2 + DGAM*(EX1-EX2)
+         DBCOOR(2)= DBCOOR(1)
+C
+C       NOW CALCULATE THE COLLINEAR ENERGY
+C       STORE R(3) IN RACTEMP THEN SET R(3) TO 
+C       THE COLLINEAR GEOMETRY AND CALL POT
+C
+         RACTEMP = R(3)
+         R(3) = R(2) + R(1)
+C
+         CALL POT2
+C
+         R(3) = RACTEMP
+C
+         ENERGY = ENERGY + BCOOR
+C
+         DO 300 IT = 1,2
+              DEDR(IT) = DBCOOR(IT) + DEDR(IT) + DEDR(3)
+  300    CONTINUE
+         DEDR(3) = DAC
+         IF (IDIREC .LT. 0) THEN
+            T = DEDR(1)
+            DEDR(1) = DEDR(2)
+            DEDR(2) = T
+            T = R(1)
+            R(1) = R(2)
+            R(2) = T
+         END IF
+      ELSE
+        ENERGY = 1.D30
+        DEDR(1) = 0.0D0
+        IF (R(1) .LE. TOL) DEDR(1) = -ENERGY
+        DEDR(2) = 0.0D0
+        IF (R(1) .LE. TOL) DEDR(2) = -ENERGY
+        DEDR(3) = 0.0D0
+        IF (R(1) .LE. TOL) DEDR(3) = -ENERGY
+      END IF
+      RETURN
+      END
+C
+      SUBROUTINE PREPT2(IDIREC)
+C
+C     COLLINEAR A + BC POTENTIAL FUNCTION
+C     RMO-SPLINE TYPE FIT
+C     COORDINATES AND ENERGIES PASSED TO POTENTIAL IN ATOMIC UNITS
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      DIMENSION PHI(20),BSP(20,3),CSP(22,3)
+      COMMON/PT31CM/ R(3), ENERGY, DEDR(3)
+      COMMON /PT34CM/ IPRT, IRD1
+      CHARACTER*20 TITLE
+      DATA DETRAD/0.0174532D0/, CKCAL/627.5095D0/, BOHR/0.529177D0/
+C
+C  READ IN COLLINEAR PARAMETERS (UNITS OF KCAL, ANGSTROM, DEGREES)
+C  TITLE
+C
+C     READ (8, 800) TITLE
+      READ (IRD1, 800) TITLE
+      A1INF = 0.0D0
+      A2INF = 0.0D0
+      IAYES = 0
+C
+C  READ IN PARAMETERS FOR THE ASYMPTOTIC REACTANT AND PRODUCT REGIONS
+C
+C     READ (8, 801) D1INF,R1INF,B1INF,D2INF,R2INF,B2INF,A1INF,A2INF
+      READ (IRD1, 801) D1INF,R1INF,B1INF,D2INF,R2INF,B2INF,A1INF,A2INF
+      IF(A2INF .EQ.0.0D0) A2INF = D1INF-D2INF
+C
+C  READ IN THE PIVOT POINT, POTENTIAL AT THE PIVOT, 
+C  FLAG, AND ASYMPTOTIC EXPONENTIAL PARAMETERS
+C
+C     READ (8, 802) R1S,R2S,VSP,IAYES,ALPH1,ALPH2
+      READ (IRD1, 802) R1S,R2S,VSP,IAYES,ALPH1,ALPH2
+      WRITE (6, 600) TITLE
+      WRITE (6, 601) D1INF,R1INF,B1INF,D2INF,R2INF,B2INF,A1INF,A2INF
+      WRITE (6, 602) R1S,R2S,VSP,ALPH1,ALPH2
+      IF(IAYES.NE.0) WRITE (6, 603)
+      IF(IAYES.EQ.0) WRITE (6, 604)
+C
+C  READ IN NUMBER OF ANGLES IN ROTATED MORSE OSCILLATOR FIT
+C
+C     READ (8, 803) NPHI
+      READ (IRD1, 803) NPHI
+C
+C  READ IN ANGLES
+C
+C     READ (8, 804) (PHI(I),I = 1,NPHI)
+      READ (IRD1, 804) (PHI(I),I = 1,NPHI)
+C
+C  READ IN FUNCTION VALUES AT THESE ANGLE
+C
+      DO 10 J = 1,3
+C        READ (8, 804) (BSP(I,J),I = 1,NPHI)
+         READ (IRD1, 804) (BSP(I,J),I = 1,NPHI)
+   10 CONTINUE
+      NPHIP2 = NPHI + 2
+C
+C  READ IN SPLINE FIT COEFFICIENTS
+C
+      DO 20 J = 1,3
+C        READ (8, 804)(CSP(I,J),I = 1,NPHIP2)
+         READ (IRD1, 804)(CSP(I,J),I = 1,NPHIP2)
+   20 CONTINUE
+      WRITE (6, 605) NPHI
+      DO 30 I = 1,NPHI
+         WRITE (6, 606) I,PHI(I),(BSP(I,J),CSP(I,J),J=1,3)
+   30 CONTINUE
+      DO 40 I=1,2
+         K = I + NPHI
+         WRITE (6, 607) K,(CSP(K,J),J=1,3)
+   40 CONTINUE
+C
+C  CONVERT TO ATOMIC UNITS
+C
+      D1INF = D1INF/CKCAL
+      A1INF = A1INF/CKCAL
+      R1INF = R1INF/BOHR
+      B1INF = B1INF*BOHR
+      D2INF = D2INF/CKCAL
+      A2INF = A2INF/CKCAL
+      R2INF = R2INF/BOHR
+      B2INF = B2INF*BOHR
+      R1S = R1S/BOHR
+      R2S = R2S/BOHR
+      VSP = VSP/CKCAL
+      ALPH1 = ALPH1*BOHR
+      ALPH2 = ALPH2*BOHR
+      DO 50 I = 1,NPHI
+         BSP(I,1) = BSP(I,1)/CKCAL
+         BSP(I,2) = BSP(I,2)/BOHR
+         BSP(I,3) = BSP(I,3)*BOHR
+   50 CONTINUE
+      NNN = NPHI + 2
+      DO 60 I = 1,NNN
+         CSP(I,1) = CSP(I,1)/CKCAL
+         CSP(I,2) = CSP(I,2)/BOHR
+         CSP(I,3) = CSP(I,3)*BOHR
+   60 CONTINUE
+C
+C  CONVERT FROM DEGREES TO RADIANS
+C
+      T = 1.0D0/DETRAD
+      DO 70 J = 1,3
+        CSP(2,J) = CSP(2,J)*T
+   70 CONTINUE
+      T = T**3
+      DO 80 II = 1,NPHI
+         PHI(II) = PHI(II)*DETRAD
+         I = II + 2
+         DO 80 J = 1,3
+            CSP(I,J) = CSP(I,J)*T
+   80 CONTINUE
+C
+C  SET UP CONSTANTS
+C
+C     REACTANT ASYMPTOTE
+C
+      DIS = BSP(1,1)
+      REQ = BSP(1,2)
+      BET = BSP(1,3)
+      T1 = 1.0D0 - EXP(-BET*REQ)
+      AER = VSP - DIS*T1*T1
+      REQ = R2S - REQ
+      D1DIF = DIS - D1INF
+      R1DIF = REQ - R1INF
+      B1DIF = BET - B1INF
+      A1DIF = AER - A1INF
+C
+C     PRODUCT ASYMPTOTE
+C
+      DIS = BSP(NPHI,1)
+      REQ = BSP(NPHI,2)
+      BET = BSP(NPHI,3)
+      T1 = 1.0D0 - EXP(-BET*REQ)
+      AER = VSP - DIS*T1*T1
+      REQ = R1S - REQ
+      D2DIF = DIS - D2INF
+      R2DIF = REQ - R2INF
+      B2DIF = BET - B2INF
+      A2DIF = AER - A2INF
+C
+C  DEFINE ZERO OF ENERGY
+C
+      IF (IDIREC .GE. 0) THEN
+         DASY = D1INF
+         VDIF = 0.0D0
+      ELSE
+         DASY = D2INF
+         VDIF = DASY - D1INF
+      END IF
+      RETURN
+  600 FORMAT (' POTENTIAL TITLE:  ', A20)
+  601 FORMAT (1X, ' D1INF,R1INF,B1INF,D2INF,R2INF,B2INF,A1INF,A2INF
+     1(KCAL/ANG) = '/5X,8F10.5)
+  602 FORMAT (1X, 'R1S,R2S,VSP,ALPH1,ALPH2(ANG/KCAL) =',5F10.5)
+  603 FORMAT (1X,' PIVOT POINT IS FIXED AT VSP')
+  604 FORMAT (1X,' PIVOT POINT IS NOT FIXED; VSP IS 3-BODY BREAK-UP
+     1ENERGY')
+  605 FORMAT (1X, ' NPHI = ', I5)
+  606 FORMAT (1X,I5,F10.5,5X,4(F10.5,E15.5))
+  607 FORMAT (1X,I5,15X,4(10X,E15.5))
+  800 FORMAT (A20)
+  801 FORMAT (8F9.5)
+  802 FORMAT (3F10.5,I5,2F10.5)
+  803 FORMAT (16I5)
+  804 FORMAT (4G20.10)
+C
+      ENTRY POT2
+C
+C     R1 = R(1)
+C     R2 = R(2)
+C     R3 = R(3)
+      IF (R(1) .GT. R1S) THEN
+         IF (R(2) .GT. R2S) THEN
+C
+C   3-ATOM BREAK UP REGION
+C
+           ENERGY = DASY
+            DEDR(1) = 0.0D0
+            DEDR(2) = 0.0D0
+         ELSE
+C
+C   REACTANT ASYMPTOTIC REGION
+C
+            DR1 = R(1) - R1S
+            IF (DR1*ALPH1 .LT. -70.0D0) 
+     *          WRITE (6, 6601) R(1), R(2), R(3), DR1, ALPH1
+            T1 = EXP(-DR1*ALPH1)
+            T2 = -ALPH1*T1
+C
+C.....INTERPOLATE FOR MORSE PARAMETERS
+C
+            DIS = D1INF + D1DIF*T1
+            DDIS = D1DIF*T2
+            REQ = R1INF + R1DIF*T1
+            DREQ = R1DIF*T2
+            BET = B1INF + B1DIF*T1
+            DBET = B1DIF*T2
+            IF(IAYES.EQ.0) THEN
+               AER = VSP - DIS
+               DAER = -DDIS
+            ELSE
+               AER = A1INF + A1DIF*T1
+               DAER = A1DIF*T2
+            END IF
+            DELR = R(2) - REQ
+            IF (DELR*BET .LT.  -70.0D0) 
+     *          WRITE (6, 6602) R(1), R(2), R(3), DELR, BET
+            T1 = EXP(-BET*DELR)
+            T2 = 1.0D0 - T1
+           ENERGY = AER + DIS*T2*T2
+            T3 = 2.0D0*DIS*T1
+            DEDR(1) = DAER + T2*(DDIS*T2 - T3*(BET*DREQ - DBET*DELR))
+            DEDR(2) = T3*BET*T2
+         END IF
+      ELSE IF (R(2) .GT. R2S) THEN
+C
+C   PRODUCT ASYMPTOTIC REGION
+C
+         DR2 = R(2) - R2S
+         IF (DR2*ALPH2 .LT.  -70.D0) 
+     *       WRITE (6, 6603) R(1), R(2), R(3), DR2, ALPH2
+C
+C.....INTERPOLATE FOR MORSE PARAMETERS
+C
+         T1 = EXP(-DR2*ALPH2)
+         T2 = -ALPH2*T1
+         DIS = D2INF + D2DIF*T1
+         DDIS = D2DIF*T2
+         REQ = R2INF + R2DIF*T1
+         DREQ = R2DIF*T2
+         BET = B2INF + B2DIF*T1
+         DBET = B2DIF*T2
+         IF(IAYES.EQ.0) THEN
+            AER = VSP - DIS
+            DAER = -DDIS
+         ELSE
+            AER = A2INF + A2DIF*T1
+            DAER = A2DIF*T2
+         END IF
+         DELR = R(1) - REQ
+         IF (DELR*BET .LT.  -70.0D0) 
+     *       WRITE (6, 6604) R(1), R(2), R(3), DELR, BVET
+         T1 = EXP(-BET*DELR)
+         T2 = 1.0D0 - T1
+        ENERGY = AER + DIS*T2*T2
+         T3 = 2.0D0*DIS*T1
+         DEDR(2) = DAER + T2*(DDIS*T2 - T3*(BET*DREQ - DBET*DELR))
+         DEDR(1) = T3*BET*T2
+      ELSE
+C
+C   SPLINE INTERPOLATION REGION
+C
+         DR1 = R1S - R(1)
+         DR2 = R2S - R(2)
+         T1 = DR1*DR1 + DR2*DR2
+         RR = SQRT(T1)
+         DRRD1 = -DR1/RR
+         DRRD2 = -DR2/RR
+         ANGLE = ATAN(DR1/DR2)
+         DPHD1 = -DR2/T1
+         DPHD2 = DR1/T1
+         DIS = SPLINE(3,NPHI,PHI,BSP(1,1),CSP(1,1),SCRAP,ANGLE)
+         DDIS = SPLINE(4,NPHI,PHI,BSP(1,1),CSP(1,1),SCRAP,ANGLE)
+         REQ = SPLINE(3,NPHI,PHI,BSP(1,2),CSP(1,2),SCRAP,ANGLE)
+         DREQ = SPLINE(4,NPHI,PHI,BSP(1,2),CSP(1,2),SCRAP,ANGLE)
+         BET =  SPLINE(3,NPHI,PHI,BSP(1,3),CSP(1,3),SCRAP,ANGLE)
+         DBET = SPLINE(4,NPHI,PHI,BSP(1,3),CSP(1,3),SCRAP,ANGLE)
+         IF(IAYES.EQ.0) THEN
+            AER = VSP - DIS
+            DAER = -DDIS
+         ELSE
+            T1 = EXP(-BET*REQ)
+            T2 = 1.0D0 - T1
+            AER = VSP - DIS*T2*T2
+            DAER = -T2*(DDIS*T2 + 2.0D0*DIS*T1*(BET*DREQ + REQ*DBET))
+         END IF
+         IF (BET*(RR-REQ) .GT.  70) 
+     *       WRITE (6, 6600) R(1), R(2), R(3), RR, ANGLE, DIS, REQ, BET
+         DELR = RR - REQ
+         T1 = EXP(BET*DELR)
+         T2 = 1.0D0 - T1
+        ENERGY = AER + DIS*T2*T2
+         T3 = 2.0D0*DIS*T1
+         DVDP = DAER + T2*(DDIS*T2 - T3*(DBET*DELR - BET*DREQ))
+         T3 = T3*T2*BET
+         DEDR(1) =  DVDP*DPHD1 - T3*DRRD1
+         DEDR(2) =  DVDP*DPHD2 - T3*DRRD2
+      END IF
+      ENERGY = ENERGY + VDIF
+      DEDR(1) = DEDR(1)
+      DEDR(2) = DEDR(2)
+      DEDR(3) = 0.0D0
+      RETURN
+ 6600 FORMAT (' R(1),R(2),R(3),RR,ANGLE,DIS,REQ,BET=', / (1X, 4E18.10))
+ 6601 FORMAT (' R(1), R(2), R(3), DELR, ALPH1=', 1P5E13.5)
+ 6602 FORMAT (' R(1), R(2), R(3), DR2, BET=', 1P5E13.5)
+ 6603 FORMAT (' R(1), R(2), R(3), DELR, ALPH2 = ', 1P5E13.5)
+ 6604 FORMAT (' R(1), R(2), R(3), DR2, BET=', 1P5E13.5)
+      END
+C
+      FUNCTION SPLINE(ISW,NN,X,Y,C,D,XPT)
+      IMPLICIT REAL*8 (A-H,O-Z)
+      DIMENSION X(*),Y(*),C(*),D(*)
+C
+C  THIS IS A SUBROUTINE FOR FITTING DATA WITH A CUBIC SPLINE
+C  POLYNOMIAL AND EVALUATING THAT POLYNOMIAL AT A GIVEN POINT
+C  OR ITS DERIVATIVE AT A GIVEN POINT
+C
+C  CALLING SEQUENCE .......
+C     ISW ... CONTROL OPTION
+C         ISW=1  IF A CUBIC SPLINE IS TO BE FITTED TO THE SET OF KNOTS
+C                DEFINED BY THE ARRAYS X AND Y.  THE SPLINE COEFFICIENTS
+C                ARE STORED IN THE ARRAY C.
+C         ISW=2  IF THE SPLINE DEFINED BY THE COEFFICIENT ARRAY 'C' IS
+C                TO BE EVALUATED (INTERPOLATED) AT THE POINT DEFINED BY
+C                THE PARAMETER 'XPT'.
+C         ISW=3  AS IN ISW=2, ONLY THE DERIVATIVE/3.D0 IS ALSO CALCULATE
+C         ISW=4  THE DERIVATIVE CALCULATED BY THE LAST USE OF SPLINE WIT
+C                IS RETURNED.
+C
+C     NN ... THE NUMBER OF KNOTS (DATA POINTS) TO WHICH THE SPLINE IS TO
+C            BE FITTED
+C
+C     X,Y ... THE ARRAYS DEFINING THE KNOTS.  THE X-VALUES MUST BE IN
+C             INCREASING ORDER.  THE ARRAYS MUST BE DIMENSIONED AT LEAST
+C             NN.
+C
+C     C ... THE ARRAY THAT CONTAINS THE CUBIC SPLINE COEFFICIENTS.
+C           MUST BE DIMENSIONED AT LEAST NN+2 .
+C
+C     D ... A WORK SPACE.  MUST BE DIMENSIONED AT LEAST NN+2 .
+C
+C     XPT ... THE POINT AT WHICH THE INTERPOLATION IS DESIRED (IF ISW IS
+C              SET TO 2).  THE VALUE OF SPLINE IS SET TO THE
+C              INTERPOLATED VALUE.
+C
+C
+C *****  USER NOTES  *****
+C
+C     INTERPOLATION INVOLVES AT LEAST TWO STEPS .......
+C
+C       A.  CALL SPLINE WITH THE KNOTS.  THIS SETS UP THE
+C           COEFFICIENT ARRAY C.
+C           EG.  DUMY=SPLINE(1,NN,X,Y,C,D,XPT)
+C
+C       B.  CALL SPLINE WITH THE ARRAY C WHICH WAS DEFINED BY THE
+C           PREVIOUS CALL AND WILL BE USED TO FIND THE VALUE AT THE
+C           POINT 'XPT' .
+C           EG.   VALUE=SPLINE(2,NN,X,Y,C,D,XPT)
+C
+C     STEP 'A' NEED BE EXECUTED ONLY ONCE FOR A GIVEN SET OF KNOTS.
+C     STEP B MAY BE EXECUTED AS MANY TIMES AS NECESSARY.
+C
+      N = NN
+      NP1 = N+1
+      NP2 = N+2
+      Z = XPT
+      IF (ISW .EQ. 1) THEN
+         C(1) = Y(1)
+         D(1) = 1.0D0
+         C(NP1) = 0.0D0
+         D(NP1) = 0.0D0
+         C(NP2) = 0.0D0
+         D(NP2) = 0.0D0
+         DO 41 I = 2,N
+            C(I) = Y(I)-Y(1)
+41          D(I) = X(I)-X(1)
+         DO 410 I = 3,NP2
+            IF(D(I-1).EQ.0.0D0) THEN
+               WRITE(6,1001)
+               CALL EXIT
+            END IF
+            PIVOT = 1.0D0/D(I-1)
+            IF(I.LT.NP2) THEN
+               SUPD = X(I-1)-X(I-2)
+               IF(SUPD.LT.0.0D0) THEN
+                  WRITE(6,1000)
+                  CALL EXIT
+               END IF
+               SUPD = SUPD*SUPD*SUPD
+            ELSE
+               SUPD = 1.0D0
+            END IF
+            DFACT = SUPD*PIVOT
+            CFACT = C(I-1)*PIVOT
+            IF(I.LE.N) THEN
+               DO 47 J = I,N
+                  V = X(J)-X(I-2)
+                  C(J) = C(J)-D(J)*CFACT
+47                D(J) = V*V*V-D(J)*DFACT
+            END IF
+            IF(I.LT.NP2) THEN
+               C(NP1) = C(NP1)-D(NP1)*CFACT
+               D(NP1) = 1.0D0-D(NP1)*DFACT
+            END IF
+            C(NP2) = C(NP2)-D(NP2)*CFACT
+            D(NP2) = X(I-2)-D(NP2)*DFACT
+410      CONTINUE
+         DO 411 I = 1,N
+            J = NP2-I
+            IF(J.EQ.NP1) THEN
+               V = 1.0D0
+            ELSE
+               V = X(J)-X(J-1)
+               V = V*V*V
+            END IF
+            IF(D(J+1).EQ.0.0D0) THEN
+               WRITE(6,1001)
+               CALL EXIT
+            END IF
+            C(J+1) = C(J+1)/D(J+1)
+            C(J) = C(J)-C(J+1)*V
+411      CONTINUE
+         IF(D(2).EQ.0.0D0) THEN
+            WRITE(6,1001)
+            CALL EXIT
+         END IF
+         C(2) = C(2)/D(2)
+      ELSE IF (ISW .EQ. 2) THEN
+         SPLINE = C(1) + C(2)*(Z-X(1))
+         DO 51 I = 1,N
+            V = Z-X(I)
+            IF(V.LE.0) RETURN
+            SPLINE = SPLINE + C(I+2)*V**3
+51       CONTINUE
+      ELSE IF (ISW .EQ. 3) THEN
+         SPLINE = C(1) + C(2)*(Z-X(1))
+         DERIV = C(2)/3.
+         DO 53 I = 1,N
+            V = Z-X(I)
+            IF(V.LE.0) RETURN
+            V2 = V*V
+            SPLINE = SPLINE + C(I+2)*V2*V
+            DERIV = DERIV + C(I+2)*V2
+   53    CONTINUE
+      ELSE IF (ISW .EQ. 4) THEN
+         SPLINE = 3.D0*DERIV
+      END IF
+      RETURN
+1000  FORMAT(1X,5X,'***** ERROR IN SPLINE ... UNORDERED X-VALUES
+     1       *****')
+1001  FORMAT(1X,5X,' ***** ERROR IN SPLINE ... DIVIDE FAULT *****')
+      END

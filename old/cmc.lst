@@ -1,0 +1,1240 @@
+IBM AIX XL FORTRAN Compiler/6000  Version 02.03.0000.0023 --- cmc.f 08/22/99 15:02:12
+
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+
+        ==  On / Off Options  ==
+        ESCAPE        I4            OBJECT        SAVE          SOURCE
+
+        ==  Options Of Integer Type ==
+        AUX_SIZE(8192)        BK_SIZE(50)           CHARLEN(500)
+        CN_SIZE(1024)         FIXED(72)             MAXMEM(2048)
+        NA_SIZE(32768)        PD_SIZE(128)          SPILLSIZE(512)
+        ST_SIZE(2048)         TKA_SIZE(20000)       TKQ_SIZE(10000)
+
+        ==  Options Of Character Type  ==
+        NOATTR( )             AUTODBL( NONE )       NOCI( )
+        FLAG(W,W)             FLOAT( MAF FOLD )     NOFLTTRAP( )
+        FPRET( STD )          HALT(U)               IEEE( NEAR )
+        NOPOSITION( )         SIGTRAP(              NOXREF( )
+
+>>>>> SOURCE SECTION <<<<<
+          1 |        SUBROUTINE SETUP(N3TM)
+          2 |        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+          3 |        COMMON/LRINCM/D(3),RE(3),BETA(3),Z(3),DELZ,ZSLP,RM,
+          4 |     2       AQ1,AQ2,AQ3,AQ4,AQ5,AALP2,AALP3,AALP4,AALP5,
+          5 |     2       CO1,RECO,EASYM,R2,DZDR(3),ZPO(3),OP3Z(3),TOP3Z(3),
+          6 |     2       ZP3(3),TZP3(3),DO4Z(3),B(3)
+          7 |        COMMON/VBINCM/A1(171),A2(171),A3(171),A4(171),A5(171),ALF(171),
+          8 |     2       BET(171),X1EQ(171),X2EQ(171),FI(171),FIJ(171),AR2,TAR2,BR2
+          9 |     2       ,ALR2,BTR2,ATET,BTET,CTET,RH,RHC,RHS                      11FEB89ST
+         10 |     2       ,A6(171),A7(171),RCT,BTP                                   16FEB89
+         11 |        DIMENSION FC(18,18,5)
+         12 |        DIMENSION AL(7),BT(7)
+         13 |C
+         14 |C   N3TMMN = 3 * NATMAX
+         15 |C   NATMAX = the number of atoms represented by this potential function
+         16 |C
+         17 |C   The variable N3TMMN is the miNImum value of N3TM allowed to be
+         18 |C   passed by the calling routine fOR the number of cartesian
+         19 |C   coordinates needed to represent the full system represented by this
+         20 |C   potential energy surface routine.
+         21 |C   N3TM must be greater than OR equal to N3TMMN.
+         22 |C
+         23 |      PARAMETER (N3TMMN = 18)
+         24 |C
+         25 |C  CHECK THE NUMBER OF CARTESIAN COORDINATES SET BY THE CALLING PROGRAM
+         26 |C
+         27 |      IF (N3TM .LT. N3TMMN) THEN
+         28 |          WRITE (6, 1000) N3TM, N3TMMN
+         29 |          STOP 'SETUP 1'
+         30 |      ENDIF
+         31 |C
+         32 |C  OPEN THE FILES WHICH CONTAIN THE POTENTIAL DATA
+         33 |C
+         34 |       OPEN (UNIT=2, FILE='potcmc2.dat', STATUS='OLD',
+         35 |     *       FORM='FORMATTED', ERR=100)
+         36 |C
+         37 |       OPEN (UNIT=4, FILE='potcmc1.dat', STATUS='OLD',
+         38 |     *       FORM='FORMATTED', ERR=100)
+         39 |C
+         40 |        WRITE (6, 1100)
+         41 |        CALL PRELLR
+         42 |        CALL PREPOT
+         43 |C
+         44 |C  CLOSE THE POTENTIAL DATA FILES
+         45 |C
+         46 |       CLOSE (UNIT=2)
+         47 |       CLOSE (UNIT=4)
+         48 |C
+         49 |1000     FORMAT(/,2X,T5,'WARNING: N3TM is set equal to ',I3,
+         50 |     *                  ' but this potential routine',
+         51 |     *          /,2X,T14,'requires N3TM be greater than or ',
+         52 |     *                   'equal to ',I3,/)
+         53 |1100    FORMAT(/,2X,T5,'Setup has been called for the ClCH3Cl ',
+         54 |     *                 'surface S')
+         55 |C
+         56 |        RETURN
+         57 |C
+         58 |  100 WRITE(6,*)'ERROR OPENING POTENTIAL DATA FILE'
+         59 |      STOP 'SETUP 2'
+         60 |C
+         61 |      END
+** setup   === End of Compilation 1 ===
+
+>>>>> FILE TABLE SECTION <<<<<
+
+
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    cmc.f                       08/21/99   13:43:05
+
+>>>>> COMPILATION UNIT EPILOGUE SECTION <<<<<
+
+
+FORTRAN Summary of Diagnosed Conditions
+
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+    Elapsed time..............................................00:00:00
+    Total cpu time............................................   0.080
+    Virtual cpu time..........................................   0.110
+   ** Compilation unit successful.
+
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+
+        ==  On / Off Options  ==
+        ESCAPE        I4            OBJECT        SAVE          SOURCE
+
+        ==  Options Of Integer Type ==
+        AUX_SIZE(8192)        BK_SIZE(50)           CHARLEN(500)
+        CN_SIZE(1024)         FIXED(72)             MAXMEM(2048)
+        NA_SIZE(32768)        PD_SIZE(128)          SPILLSIZE(512)
+        ST_SIZE(2048)         TKA_SIZE(20000)       TKQ_SIZE(10000)
+
+        ==  Options Of Character Type  ==
+        NOATTR( )             AUTODBL( NONE )       NOCI( )
+        FLAG(W,W)             FLOAT( MAF FOLD )     NOFLTTRAP( )
+        FPRET( STD )          HALT(U)               IEEE( NEAR )
+        NOPOSITION( )         SIGTRAP(              NOXREF( )
+
+>>>>> SOURCE SECTION <<<<<
+         62 |C
+         63 |C     PREPOT FOR LEPSLR
+         64 |      SUBROUTINE PRELLR
+         65 |C
+         66 |      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+         67 |      COMMON/LRINCM/D(3),RE(3),BETA(3),Z(3),DELZ,ZSLP,RM,
+         68 |     2       AQ1,AQ2,AQ3,AQ4,AQ5,AALP2,AALP3,AALP4,AALP5,
+         69 |     2       CO1,RECO,EASYM,R2,DZDR(3),ZPO(3),OP3Z(3),TOP3Z(3),
+         70 |     2       ZP3(3),TZP3(3),DO4Z(3),B(3)
+         71 |      R2 = SQRT(2.0D0)
+         72 |C
+         73 |C   READ POTENTIAL ENERGY SURFACE PARAMETERS
+         74 |C        ENERGIES IN KCAL/MOL, LENGTHS IN ANGSTOMS
+         75 |C        DELZ,ZSLP UNITLESS, RM IN ANGSTROM
+         76 |      READ (4,501) (D(I),RE(I),BETA(I),Z(I),I = 1,3)
+         77 |      READ (4,501)  DELZ,ZSLP,RM                                        13OCT88
+         78 |  501 FORMAT (4F20.5)
+         79 |C   READ IN LONG RANGE TERM PARAMETERS                                  04DEC87
+         80 |C        AQ1 IN INVERSE ANGSTROM, AQ4 IN ANGSTROM                       25AUG88
+         81 |C        CO1 IN INVERSE ANGSTROM, RECO IN ANGSTROM                      25AUG88
+         82 |C        ALL ELSE UNITLESS                                              04DEC87
+         83 |C   NOTE:THERE IS NO AALP1, DUE TO A CHANGE IN FNAL FORM ON 8/1/88      01AUG88
+         84 |      READ (4,501) AQ1,AQ2,AQ3,AQ4                                      04DEC87
+         85 |      READ (4,501) AALP2,AALP3,AALP4,AALP5                              01AUG88
+         86 |      READ (4,501) CO1,RECO,AQ5                                         26DEC88
+         87 |C
+         88 |      EASYM = 0.55149589D0                                             08MAR89hS
+         89 |      WRITE (6,602) D,RE,BETA,Z
+         90 |      WRITE (6,604) DELZ,ZSLP,RM                                        13OCT88
+         91 |      WRITE (6,603) AQ1,AQ2,AQ3,AQ4,AQ5,AALP2,AALP3,AALP4,AALP5,
+         92 |     2   CO1,RECO,EASYM                                                 08MAR89
+         93 |  602 FORMAT (/,2X,T5,'Potential energy surface parameters for VLEPS',
+         94 |     *        /,2X,T5, 'Bond', T47, 'ClMe', T58, 'MeCl', T69, 'ClCl',
+         95 |     *        /, 2X, T5, 'Dissociation energies (kcal/mol):',
+         96 |     *        T44, F10.5, T55, F10.5, T66, F10.5,
+         97 |     *        /, 2X, T5, 'Equilibrium bond lengths (Angstroms):',
+         98 |     *        T44, F10.5, T55, F10.5, T66, F10.5,
+         99 |     *        /, 2X, T5, 'Morse beta parameters (Angstroms**-1):',
+        100 |     *        T44, F10.5, T55, F10.5, T66, F10.5,
+        101 |     *        /, 2X, T5, 'Sato parameters:',
+        102 |     *        T44, F10.5, T55, F10.5, T66, F10.5)
+        103 |C
+        104 |  603 FORMAT(/,2X,T5,'Parameters for the long range term',
+        105 |     *       /,2X,T5,'Charge fit coeff. (1-5)',T44,3(F10.5,1X),
+        106 |     *       /,2X,T44,2(F10.5,1X),
+        107 |     *       /,2X,T5,'Polarizability fit coeff. (1-4)',
+        108 |     *            T44,3(F10.5,1X),/,2X,T44,F10.5,
+        109 |     *       /,2X,T5,'Cut off coeff. (1,2)',T44,2(F10.5,1X),
+        110 |     *       /,2X,T5,'Reactant energy',T44,F13.8)
+        111 |  604 FORMAT (/,2X,T5,'Sato switching',T44,3(F10.5,1X))
+        112 |      DO  10 I = 1,3
+        113 |C   CONVERT TO ATOMIC UNITS
+        114 |      D(I)=D(I)/627.5095D0
+        115 |      RE(I) = RE(I)/0.52917706D0
+        116 |      BETA(I) = BETA(I)*0.52917706D0
+        117 |10    CONTINUE                                                          13OCT88
+        118 |      RM = RM/0.52917706D0                                              13OCT88
+        119 |      ZSLP = ZSLP*0.52917706D0                                          13OCT88
+        120 |C   COMPUTE USEFUL CONSTANTS                                            13OCT88
+        121 |      DZDR(3) = 0.D0
+        122 |      ZPO(3) = 1.0D0 + Z(3)                                             13OCT88
+        123 |      OP3Z(3) = 1.0D0 + 3.0D0*Z(3)                                      13OCT88
+        124 |      TOP3Z(3) = 2.0D0*OP3Z(3)                                          13OCT88
+        125 |      ZP3(3) = Z(3) + 3.0D0                                             13OCT88
+        126 |      TZP3(3) = 2.0D0*ZP3(3)                                            13OCT88
+        127 |      DO4Z(3) = D(3)/4.0D0/ZPO(3)                                       13OCT88
+        128 |      B(3) = BETA(3)*DO4Z(3)*2.0D0                                      13OCT88
+        129 |C   CONVERT LONG RANGE PARAMETERS TO ATOMIC UNITS ALSO                  04DEC87
+        130 |      CONV2 = (0.52917706D0)**2                                         15OCT88
+        131 |      CONV3 = (0.52917706D0)*CONV2                                      15OCT88
+        132 |      AQ1 = AQ1*0.52917706D0                                            04DEC87
+        133 |      AQ4 = AQ4/0.52917706D0                                            22AUG88
+        134 |      AQ5 = AQ5*CONV2                                                   15OCT88
+        135 |      AALP2 = AALP2/CONV3                                               04DEC87
+        136 |      AALP3 = AALP3/CONV3                                               04DEC87
+        137 |      AALP4 = AALP4/CONV3                                               04DEC87
+        138 |      AALP5 = AALP5/CONV3                                               04DEC87
+        139 |      CO1 = CO1*0.52917706D0                                            26DEC88
+        140 |      RECO = RECO/0.52917706D0                                          26DEC88
+        141 |      EASYM = EASYM/627.5095D0                                          18OCT88
+        142 |      RETURN
+        143 |      END
+** prellr   === End of Compilation 2 ===
+
+>>>>> FILE TABLE SECTION <<<<<
+
+
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    cmc.f                       08/21/99   13:43:05
+
+>>>>> COMPILATION UNIT EPILOGUE SECTION <<<<<
+
+
+FORTRAN Summary of Diagnosed Conditions
+
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+    Elapsed time..............................................00:00:00
+    Total cpu time............................................   0.150
+    Virtual cpu time..........................................   0.150
+   ** Compilation unit successful.
+
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+
+        ==  On / Off Options  ==
+        ESCAPE        I4            OBJECT        SAVE          SOURCE
+
+        ==  Options Of Integer Type ==
+        AUX_SIZE(8192)        BK_SIZE(50)           CHARLEN(500)
+        CN_SIZE(1024)         FIXED(72)             MAXMEM(2048)
+        NA_SIZE(32768)        PD_SIZE(128)          SPILLSIZE(512)
+        ST_SIZE(2048)         TKA_SIZE(20000)       TKQ_SIZE(10000)
+
+        ==  Options Of Character Type  ==
+        NOATTR( )             AUTODBL( NONE )       NOCI( )
+        FLAG(W,W)             FLOAT( MAF FOLD )     NOFLTTRAP( )
+        FPRET( STD )          HALT(U)               IEEE( NEAR )
+        NOPOSITION( )         SIGTRAP(              NOXREF( )
+
+>>>>> SOURCE SECTION <<<<<
+        144 |        SUBROUTINE PREPOT
+        145 |        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+        146 |        COMMON/LRINCM/D(3),RE(3),BETA(3),Z(3),DELZ,ZSLP,RM,
+        147 |     2       AQ1,AQ2,AQ3,AQ4,AQ5,AALP2,AALP3,AALP4,AALP5,
+        148 |     2       CO1,RECO,EASYM,R2,DZDR(3),ZPO(3),OP3Z(3),TOP3Z(3),
+        149 |     2       ZP3(3),TZP3(3),DO4Z(3),B(3)
+        150 |        COMMON/VBINCM/A1(171),A2(171),A3(171),A4(171),A5(171),ALF(171),
+        151 |     2       BET(171),X1EQ(171),X2EQ(171),FI(171),FIJ(171),AR2,TAR2,BR2
+        152 |     2       ,ALR2,BTR2,ATET,BTET,CTET,RH,RHC,RHS                      11FEB89ST
+        153 |     2       ,A6(171),A7(171),RCT,BTP                                   16FEB89
+        154 |        DIMENSION FC(18,18,5)
+        155 |        DIMENSION AL(7),BT(7)
+        156 |C       READ IN OTHER CONSTANTS, AND CONVERT TO ATOMIC UNITS
+        157 |        READ(2,462) AR2,BR2,ALR2,BTR2                                  11FEB89ST
+        158 |        READ(2,462) ATET,BTET,CTET
+        159 |        READ(2,462) RH
+        160 |462     FORMAT(4F20.5)
+        161 |        WRITE(6,463) AR2,BR2,ALR2,BTR2,ATET,BTET,CTET,RH
+        162 |463     FORMAT(/,1X,'Parameters for the equilibrium cartesian coords ',
+        163 |     2   'as a fcn of RC',/1X,'for R2',14X,4F10.5/1X,'for THETA',11X,
+        164 |     2    3F10.5/1X,'CH distance',9X,1F10.5/)
+        165 |C       CONVERT TO ATOMIC UNITS AND RADIANS
+        166 |        BRANG2 = 0.52917706D0*0.52917706D0
+        167 |        ANGBOR = 1.D0/0.52917706D0
+        168 |        PI = ACOS(-1.0D0)
+        169 |        RADCN = PI/180.D0
+        170 |        AR2 = AR2*ANGBOR
+        171 |        BR2 = BR2*ANGBOR
+        172 |        ALR2 = ALR2*ANGBOR
+        173 |        BTR2 = BTR2*BRANG2
+        174 |        ATET = ATET*RADCN
+        175 |        BTET = BTET*0.52917706D0
+        176 |        CTET = CTET*RADCN
+        177 |        RH = RH*ANGBOR
+        178 |C       COMPUTE USEFUL CONSTANTS
+        179 |        TAR2 = 2.0D0 * AR2
+        180 |        RHC = RH*0.5D0
+        181 |        RHS = RH*SQRT(3.D0)*0.5D0
+        182 |C       READ IN CARTESIAN FORCE CONTSTANTS FROM ABINITIO CALCULATIONS
+        183 |        DO 10 I=1,18
+        184 |         IF(I.LE.5)THEN
+        185 |           MAXRD = I
+        186 |         ELSE
+        187 |           MAXRD = 5
+        188 |         END IF
+        189 |         DO 210 K=1,5
+        190 |           READ(2,500) NDUM,(FC(I,J,K),J=1,MAXRD)
+        191 |210      CONTINUE
+        192 | 10     CONTINUE
+        193 |500     FORMAT(I3,5F14.6)
+        194 |        DO 15 I=6,18
+        195 |         IF(I.LE.10)THEN
+        196 |           MAXRD = I
+        197 |         ELSE
+        198 |           MAXRD = 10
+        199 |         END IF
+        200 |         DO 215 K=1,5
+        201 |           READ(2,500) NDUM,(FC(I,J,K),J=6,MAXRD)
+        202 |215      CONTINUE
+        203 | 15     CONTINUE
+        204 |        DO 20 I=11,18
+        205 |         IF(I.LE.15)THEN
+        206 |           MAXRD = I
+        207 |         ELSE
+        208 |           MAXRD = 15
+        209 |         END IF
+        210 |         DO 220 K=1,5
+        211 |           READ(2,500) NDUM,(FC(I,J,K),J=11,MAXRD)
+        212 |220      CONTINUE
+        213 | 20     CONTINUE
+        214 |        DO 25 I=16,18
+        215 |         DO 225 K=1,5
+        216 |           READ(2,500) NDUM,(FC(I,J,K),J=16,I)
+        217 |225      CONTINUE
+        218 | 25     CONTINUE
+        219 |C       COMPUTE FITS TO FORCE CONSTANTS, IN EH/A0**2
+        220 |        BTP = 0.25D0
+        221 |        RCT =  2.54273315D0
+        222 |        RCF =  -RCT                                                     16FEB89
+        223 |        RCT2 = RCT*RCT
+        224 |        RCE4 = EXP(-4.D0*RCT2)                                          16FEB89
+        225 |        RCE8 = RCE4*RCE4                                                16FEB89
+        226 |        DUM = 1.0D0
+        227 |        AL(1) = 0.403D0
+        228 |        AL(3) = 0.234D0
+        229 |        AL(6) = 0.88D0
+        230 |        AL(7) = 0.40D0
+        231 |        BT(3) = 0.58D0
+        232 |        BT(6) = 0.7D0
+        233 |        BT(7) = 0.15D0
+        234 |        GAM6 = 1.18D0
+        235 |        GAM7 = 2.20D0
+        236 |        X16 = -2.14D0
+        237 |        X17 = -2.40D0
+        238 |        DO 120 I=1,18
+        239 |         DO 140 J=1,I
+        240 |           NIJ = ((I*I - I)/2  + 1 + (J-1) )
+        241 |           DA5A1 = ABS(FC(I,J,5)) - ABS(FC(I,J,1))
+        242 |           D15 = FC(I,J,1) - FC(I,J,5)
+        243 |           D13 = FC(I,J,1) - FC(I,J,3)
+        244 |           AD15 = ABS(D15)
+        245 |           AD13 = ABS(D13)
+        246 |           AD23 = ABS(FC(I,J,2) - FC(I,J,3))
+        247 |           AD25 = ABS(FC(I,J,2) - FC(I,J,5))
+        248 |           AD41 = ABS(FC(I,J,4) - FC(I,J,1))
+        249 |          IF(D13.NE.0.0D0)THEN
+        250 |           IF(DA5A1.EQ.0.D0)THEN
+        251 |             FI(NIJ) = FC(I,J,3)
+        252 |             FIJ(NIJ) = D13
+        253 |             IF(AD15.EQ.0.0D0)THEN                                      14FEB89
+        254 |               IF(AD13.LT.AD23)THEN
+        255 |                 A1(NIJ) = 1.0D0
+        256 |                 A2(NIJ) = -1.0D0
+        257 |                 A3(NIJ) = 0.0D0
+        258 |                 A5(NIJ) = 0.0D0
+        259 |                 A6(NIJ) = 0.0D0                                        16FEB89
+        260 |                 A7(NIJ) = 0.0D0                                        16FEB89
+        261 |                 X1EQ(NIJ) = 0.0D0
+        262 |                 X2EQ(NIJ) = DUM
+        263 |                 ALF(NIJ) = AL(1)
+        264 |                 BET(NIJ) = DUM
+        265 |                 XINV = 1.0D0/RCT2
+        266 |                 D21 = FC(I,J,2) - FC(I,J,1)
+        267 |                 GT = 1.D0 + EXP( AL(1)*RCT2 ) * (D21/D13)
+        268 |                 A4(NIJ) = XINV * GT
+        269 |               ELSE
+        270 |                 A1(NIJ) = 1.0D0
+        271 |                 A2(NIJ) = -1.0D0
+        272 |                 A3(NIJ) = 0.0D0
+        273 |                 A4(NIJ) = 0.0D0
+        274 |                 A5(NIJ) = 0.0D0
+        275 |                 A6(NIJ) = 0.0D0                                        16FEB89
+        276 |                 A7(NIJ) = 0.0D0                                        16FEB89
+        277 |                 X1EQ(NIJ) = 0.0D0
+        278 |                 X2EQ(NIJ) = DUM
+        279 |                 D12 = FC(I,J,1) - FC(I,J,2)                            14FEB89
+        280 |                 RAT = (D12/D13)                                        14FEB89
+        281 |                 ALF(NIJ) = -(1.0D0/RCT2)*LOG(RAT)                      14FEB89
+        282 |                 BET(NIJ) = DUM
+        283 |               END IF
+        284 |             ELSE
+        285 |               IF(AD13.LT.AD23)THEN
+        286 |                 A1(NIJ) = 0.0D0
+        287 |                 A2(NIJ) = 0.0D0
+        288 |                 A4(NIJ) = 0.0D0
+        289 |                 A5(NIJ) = 1.0D0
+        290 |                 A6(NIJ) = 0.0D0                                        16FEB89
+        291 |                 A7(NIJ) = 0.0D0                                        16FEB89
+        292 |                 X1EQ(NIJ) = 0.0D0
+        293 |                 X2EQ(NIJ) = 0.0D0
+        294 |                 ALF(NIJ) = AL(3)
+        295 |                 BET(NIJ) = BT(3)
+        296 |                 TH2 = TANH( BT(3) * RCT )
+        297 |                 D23 = FC(I,J,2) - FC(I,J,3)
+        298 |                 RAT = EXP( AL(3)*RCT2 ) / RCT
+        299 |                 A3(NIJ) = RAT * ( (D23/D13) - TH2 )
+        300 |               ELSE
+        301 |                 A1(NIJ) = 0.0D0
+        302 |                 A2(NIJ) = 0.0D0
+        303 |                 A3(NIJ) = 0.0D0
+        304 |                 A4(NIJ) = 0.0D0
+        305 |                 A5(NIJ) = 1.0D0
+        306 |                 A6(NIJ) = 0.0D0                                        16FEB89
+        307 |                 A7(NIJ) = 0.0D0                                        16FEB89
+        308 |                 X1EQ(NIJ) = DUM
+        309 |                 X2EQ(NIJ) = 0.0D0
+        310 |                 ALF(NIJ) = DUM
+        311 |                 D23 = FC(I,J,2) - FC(I,J,3)
+        312 |                 RAT = D23/D13
+        313 |                 ATH = 0.5D0*LOG((1.D0 + RAT)/(1.D0 - RAT))
+        314 |                 BET(NIJ) = (1.D0/RCT) * ATH
+        315 |               END IF
+        316 |             END IF
+        317 |           ELSE
+        318 |             FI(NIJ) = FC(I,J,5)
+        319 |             FIJ(NIJ) = D15
+        320 |             RA2515 = AD25/AD15
+        321 |             RA4151 = AD41/AD15
+        322 |             IF(RA2515.GT.1.05D0)THEN
+        323 |               IF(FC(I,J,1).EQ.0.0D0) THEN
+        324 |                 A1(NIJ) = 0.50D0
+        325 |                 A3(NIJ) = 0.0D0
+        326 |                 A4(NIJ) = 0.0D0
+        327 |                 A5(NIJ) = 0.50D0
+        328 |                 ALF(NIJ) = AL(6)
+        329 |                 BET(NIJ) = BT(6)
+        330 |                 X1EQ(NIJ) = - X16
+        331 |                 D21 = FC(I,J,2) - FC(I,J,1)
+        332 |                 A2(NIJ) = GAM6 * (D21/D15)
+        333 |                 CA2 = A2(NIJ) * EXP(-AL(6) * X16 * X16 )
+        334 |                 D35 = FC(I,J,3) - FC(I,J,5)
+        335 |                 RAT = D35 / D15
+        336 |                 ARGLN = (RAT - CA2)/(1.0D0 - RAT + CA2)
+        337 |                 X2EQ(NIJ) = - LOG(ARGLN) / (2.0D0 * BT(6))
+        338 |                 GTIL4 = .5D0 + .5D0*TANH(BET(NIJ)*(RCF-X2EQ(NIJ)))
+        339 |     2                  + A2(NIJ)*EXP(-ALF(NIJ)*(RCF-X1EQ(NIJ))**2)      16FEB89
+        340 |                 GTIL2 = .5D0 + .5D0*TANH(BET(NIJ)*(RCT-X2EQ(NIJ)))
+        341 |     2                  + A2(NIJ)*EXP(-ALF(NIJ)*(RCT-X1EQ(NIJ))**2)      16FEB89
+        342 |                 D25 = FC(I,J,2) - FC(I,J,5)                             16FEB89
+        343 |                 D45 = FC(I,J,4) - FC(I,J,5)                             16FEB89
+        344 |                 G2 = D25/D15                                            16FEB89
+        345 |                 G4 = D45/D15                                            16FEB89
+        346 |                 DG2 = G2 - GTIL2                                        16FEB89
+        347 |                 DG4 = G4 - GTIL4                                        16FEB89
+        348 |                 A6(NIJ) = (DG2 + DG4*RCE4)/(RCF*(RCE8 - 1.D0) )         16FEB89
+        349 |                 A7(NIJ) = (DG4 + DG2*RCE4)/(RCT*(RCE8 - 1.D0) )         16FEB89
+        350 |               ELSE
+        351 |                 A1(NIJ) = 0.50D0
+        352 |                 A3(NIJ) = 0.0D0
+        353 |                 A4(NIJ) = 0.0D0
+        354 |                 A5(NIJ) = 0.50D0
+        355 |                 ALF(NIJ) = AL(7)
+        356 |                 BET(NIJ) = BT(7)
+        357 |                 X1EQ(NIJ) = - X17
+        358 |                 D21 = FC(I,J,2) - FC(I,J,1)
+        359 |                 A2(NIJ) = GAM7 * (D21/D15)
+        360 |                 CA2 = A2(NIJ) * EXP(-AL(7) * X17 * X17 )
+        361 |                 D35 = FC(I,J,3) - FC(I,J,5)
+        362 |                 RAT = D35 / D15
+        363 |                 ARGLN = (RAT - CA2)/(1.0D0 - RAT + CA2)
+        364 |                 X2EQ(NIJ) = - LOG(ARGLN) / (2.0D0 * BT(7))
+        365 |                 GTIL4 = .5D0 + .5D0*TANH(BET(NIJ)*(RCF-X2EQ(NIJ)))
+        366 |     2                  + A2(NIJ)*EXP(-ALF(NIJ)*(RCF-X1EQ(NIJ))**2)      16FEB89
+        367 |                 GTIL2 = .5D0 + .5D0*TANH(BET(NIJ)*(RCT-X2EQ(NIJ)))
+        368 |     2                  + A2(NIJ)*EXP(-ALF(NIJ)*(RCT-X1EQ(NIJ))**2)      16FEB89
+        369 |                 D25 = FC(I,J,2) - FC(I,J,5)                             16FEB89
+        370 |                 D45 = FC(I,J,4) - FC(I,J,5)                             16FEB89
+        371 |                 G2 = D25/D15                                            16FEB89
+        372 |                 G4 = D45/D15                                            16FEB89
+        373 |                 DG2 = G2 - GTIL2                                        16FEB89
+        374 |                 DG4 = G4 - GTIL4                                        16FEB89
+        375 |                 A6(NIJ) = (DG2 + DG4*RCE4)/(RCF*(RCE8 - 1.D0) )         16FEB89
+        376 |                 A7(NIJ) = (DG4 + DG2*RCE4)/(RCT*(RCE8 - 1.D0) )         16FEB89
+        377 |               END IF
+        378 |             ELSE
+        379 |               IF(RA4151.GT.1.05D0)THEN
+        380 |                 IF(FC(I,J,5).EQ.0.0D0)THEN
+        381 |                   A1(NIJ) = 0.50D0
+        382 |                   A3(NIJ) = 0.0D0
+        383 |                   A4(NIJ) = 0.0D0
+        384 |                   A5(NIJ) = 0.50D0
+        385 |                   ALF(NIJ) = AL(6)
+        386 |                   BET(NIJ) = BT(6)
+        387 |                   X1EQ(NIJ) = X16
+        388 |                   D45 = FC(I,J,4) - FC(I,J,5)
+        389 |                   A2(NIJ) = GAM6 * (D45/D15)
+        390 |                   CA2 = A2(NIJ) * EXP(-AL(6) * X16 * X16 )
+        391 |                   D35 = FC(I,J,3) - FC(I,J,5)
+        392 |                   RAT = D35 / D15
+        393 |                   ARGLN = (RAT - CA2)/(1.0D0 - RAT + CA2)
+        394 |                   X2EQ(NIJ) = - LOG(ARGLN) / (2.0D0 * BT(6))
+        395 |                   GTIL4 = .5D0 + .5D0*TANH(BET(NIJ)*(RCF-X2EQ(NIJ)))
+        396 |     2                  + A2(NIJ)*EXP(-ALF(NIJ)*(RCF-X1EQ(NIJ))**2)      16FEB89
+        397 |                   GTIL2 = .5D0 + .5D0*TANH(BET(NIJ)*(RCT-X2EQ(NIJ)))
+        398 |     2                  + A2(NIJ)*EXP(-ALF(NIJ)*(RCT-X1EQ(NIJ))**2)      16FEB89
+        399 |                   D25 = FC(I,J,2) - FC(I,J,5)                           16FEB89
+        400 |                   D45 = FC(I,J,4) - FC(I,J,5)                           16FEB89
+        401 |                   G2 = D25/D15                                          16FEB89
+        402 |                   G4 = D45/D15                                          16FEB89
+        403 |                   DG2 = G2 - GTIL2                                      16FEB89
+        404 |                   DG4 = G4 - GTIL4                                      16FEB89
+        405 |                   A6(NIJ) = (DG2 + DG4*RCE4)/(RCF*(RCE8 - 1.D0) )       16FEB89
+        406 |                   A7(NIJ) = (DG4 + DG2*RCE4)/(RCT*(RCE8 - 1.D0) )       16FEB89
+        407 |                 ELSE
+        408 |                   A1(NIJ) = 0.50D0
+        409 |                   A3(NIJ) = 0.0D0
+        410 |                   A4(NIJ) = 0.0D0
+        411 |                   A5(NIJ) = 0.50D0
+        412 |                   ALF(NIJ) = AL(7)
+        413 |                   BET(NIJ) = BT(7)
+        414 |                   X1EQ(NIJ) = X17
+        415 |                   D45 = FC(I,J,4) - FC(I,J,5)
+        416 |                   A2(NIJ) = GAM7 * (D45/D15)
+        417 |                   CA2 = A2(NIJ) * EXP(-AL(7) * X17 * X17 )
+        418 |                   D35 = FC(I,J,3) - FC(I,J,5)
+        419 |                   RAT = D35 / D15
+        420 |                   ARGLN = (RAT - CA2)/(1.0D0 - RAT + CA2)
+        421 |                   X2EQ(NIJ) = - LOG(ARGLN) / (2.0D0 * BT(7))
+        422 |                   GTIL4 = .5D0 + .5D0*TANH(BET(NIJ)*(RCF-X2EQ(NIJ)))
+        423 |     2                  + A2(NIJ)*EXP(-ALF(NIJ)*(RCF-X1EQ(NIJ))**2)      16FEB89
+        424 |                   GTIL2 = .5D0 + .5D0*TANH(BET(NIJ)*(RCT-X2EQ(NIJ)))
+        425 |     2                  + A2(NIJ)*EXP(-ALF(NIJ)*(RCT-X1EQ(NIJ))**2)      16FEB89
+        426 |                   D25 = FC(I,J,2) - FC(I,J,5)                           16FEB89
+        427 |                   D45 = FC(I,J,4) - FC(I,J,5)                           16FEB89
+        428 |                   G2 = D25/D15                                          16FEB89
+        429 |                   G4 = D45/D15                                          16FEB89
+        430 |                   DG2 = G2 - GTIL2                                      16FEB89
+        431 |                   DG4 = G4 - GTIL4                                      16FEB89
+        432 |                   A6(NIJ) = (DG2 + DG4*RCE4)/(RCF*(RCE8 - 1.D0) )       16FEB89
+        433 |                   A7(NIJ) = (DG4 + DG2*RCE4)/(RCT*(RCE8 - 1.D0) )       16FEB89
+        434 |                 END IF
+        435 |               ELSE
+        436 |                 A1(NIJ) = 0.50D0
+        437 |                 A3(NIJ) = 0.0D0
+        438 |                 A4(NIJ) = 0.0D0
+        439 |                 A5(NIJ) = 0.50D0
+        440 |                 A6(NIJ) = 0.0D0                                         16FEB89
+        441 |                 A7(NIJ) = 0.0D0                                         16FEB89
+        442 |                 X1EQ(NIJ) = 0.0D0
+        443 |                 X2EQ(NIJ) = 0.0D0
+        444 |                 D35 = FC(I,J,3) - FC(I,J,5)
+        445 |                 D25 = FC(I,J,2) - FC(I,J,5)
+        446 |                 D42 = FC(I,J,4) - FC(I,J,2)
+        447 |                 A2(NIJ) = (D35/D15) - 0.5D0
+        448 |                 RAT = (D15 + D42)/(D15 - D42)
+        449 |                 BET(NIJ) = -(0.5D0/RCT)*LOG(RAT)
+        450 |                 TPRT = 0.5D0 + 0.5D0*TANH(BET(NIJ)*RCT)
+        451 |                 ARG = ( (D25/D15) - TPRT )/A2(NIJ)
+        452 |                 IF (ARG.LE.0.0D0) THEN
+        453 |C                 this applies only to (4,1),(5,2),(16,1) and (17,2)
+        454 |C                 which are related by symmetry. Later try to fit with
+        455 |C                 one of the type 6 forms?
+        456 |                  ALF(NIJ) = 1.0D0
+        457 |                 ELSE
+        458 |                 ALF(NIJ) = - (1.D0/RCT2)*LOG(ARG)
+        459 |                 END IF
+        460 |               END IF
+        461 |             END IF
+        462 |           END IF
+        463 |          ELSE                                                          14FEB89
+        464 |            A1(NIJ) = 0.0D0
+        465 |            A2(NIJ) = 0.0D0
+        466 |            A3(NIJ) = 0.0D0
+        467 |            A4(NIJ) = 0.0D0
+        468 |            A5(NIJ) = 0.0D0
+        469 |            A6(NIJ) = 0.0D0                                              16FEB89
+        470 |            A7(NIJ) = 0.0D0                                              16FEB89
+        471 |            X1EQ(NIJ) = DUM
+        472 |            X2EQ(NIJ) = DUM
+        473 |            ALF(NIJ) = DUM
+        474 |            BET(NIJ) = DUM
+        475 |            FI(NIJ) = FC(I,J,1)
+        476 |            FIJ(NIJ) = 0.0D0
+        477 |          END IF
+        478 |          IF(NIJ.EQ.7.OR.NIJ.EQ.12.OR.NIJ.EQ.121.OR.NIJ.EQ.138)THEN      16FEB89
+        479 |            POLY = A2(NIJ)
+        480 |            GAUS2 = EXP(-ALF(NIJ)*(RCT-X1EQ(NIJ))**2)
+        481 |            GAUS4 = EXP(-ALF(NIJ)*(RCF-X1EQ(NIJ))**2)
+        482 |            ATH2 = BET(NIJ)*(RCT-X2EQ(NIJ))
+        483 |            ATH4 = BET(NIJ)*(RCF-X2EQ(NIJ))
+        484 |            TH2 = A5(NIJ)*TANH(ATH2)
+        485 |            TH4 = A5(NIJ)*TANH(ATH4)
+        486 |            GTIL2 = A1(NIJ) + GAUS2*POLY + TH2
+        487 |            GTIL4 = A1(NIJ) + GAUS4*POLY + TH4
+        488 |            D15 = FC(I,J,1) - FC(I,J,5)
+        489 |            D25 = FC(I,J,2) - FC(I,J,5)
+        490 |            D45 = FC(I,J,4) - FC(I,J,5)
+        491 |            G2 = D25/D15
+        492 |            G4 = D45/D15
+        493 |            DG2 = G2 - GTIL2
+        494 |            DG4 = G4 - GTIL4
+        495 |            A6(NIJ) = (DG2 + DG4*RCE4)/(RCF*(RCE8 - 1.D0) )
+        496 |            A7(NIJ) = (DG4 + DG2*RCE4)/(RCT*(RCE8 - 1.D0) )
+        497 |          END IF
+        498 |          IF(NIJ.EQ.36.OR.NIJ.EQ.64.OR.NIJ.EQ.100)THEN                  16FEB89
+        499 |            ALF(36) = 1.0
+        500 |            BET(64) = ABS(BET(64))
+        501 |            BET(100) = ABS(BET(100))
+        502 |            POLY = A2(NIJ)
+        503 |            GAUS2 = EXP(-ALF(NIJ)*(RCT-X1EQ(NIJ))**2)
+        504 |            GAUS4 = EXP(-ALF(NIJ)*(RCF-X1EQ(NIJ))**2)
+        505 |            ATH2 = BET(NIJ)*(RCT-X2EQ(NIJ))
+        506 |            ATH4 = BET(NIJ)*(RCF-X2EQ(NIJ))
+        507 |            TH2 = A5(NIJ)*TANH(ATH2)
+        508 |            TH4 = A5(NIJ)*TANH(ATH4)
+        509 |            GTIL2 = A1(NIJ) + GAUS2*POLY + TH2
+        510 |            GTIL4 = A1(NIJ) + GAUS4*POLY + TH4
+        511 |            D13 = FC(I,J,1) - FC(I,J,3)
+        512 |            D23 = FC(I,J,2) - FC(I,J,3)
+        513 |            D43 = FC(I,J,4) - FC(I,J,3)
+        514 |            G2 = D23/D13
+        515 |            G4 = D43/D13
+        516 |            DG2 = G2 - GTIL2
+        517 |            DG4 = G4 - GTIL4
+        518 |            A6(NIJ) = (DG2 + DG4*RCE4)/(RCF*(RCE8 - 1.D0) )
+        519 |            A7(NIJ) = (DG4 + DG2*RCE4)/(RCT*(RCE8 - 1.D0) )
+        520 |          END IF
+        521 |140      CONTINUE
+        522 |120     CONTINUE
+        523 |        RETURN
+        524 |        END
+** prepot   === End of Compilation 3 ===
+
+>>>>> FILE TABLE SECTION <<<<<
+
+
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    cmc.f                       08/21/99   13:43:05
+
+>>>>> COMPILATION UNIT EPILOGUE SECTION <<<<<
+
+
+FORTRAN Summary of Diagnosed Conditions
+
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+    Elapsed time..............................................00:00:01
+    Total cpu time............................................   0.760
+    Virtual cpu time..........................................   0.770
+   ** Compilation unit successful.
+
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+
+        ==  On / Off Options  ==
+        ESCAPE        I4            OBJECT        SAVE          SOURCE
+
+        ==  Options Of Integer Type ==
+        AUX_SIZE(8192)        BK_SIZE(50)           CHARLEN(500)
+        CN_SIZE(1024)         FIXED(72)             MAXMEM(2048)
+        NA_SIZE(32768)        PD_SIZE(128)          SPILLSIZE(512)
+        ST_SIZE(2048)         TKA_SIZE(20000)       TKQ_SIZE(10000)
+
+        ==  Options Of Character Type  ==
+        NOATTR( )             AUTODBL( NONE )       NOCI( )
+        FLAG(W,W)             FLOAT( MAF FOLD )     NOFLTTRAP( )
+        FPRET( STD )          HALT(U)               IEEE( NEAR )
+        NOPOSITION( )         SIGTRAP(              NOXREF( )
+
+>>>>> SOURCE SECTION <<<<<
+        525 |C
+        526 |C   ClCH3Cl (gas-phase) potential energy surface S of Tucker et al.
+        527 |C
+        528 |        SUBROUTINE SURF(V, X, DX, N3TM)
+        529 |        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+        530 |        COMMON/LRINCM/D(3),RE(3),BETA(3),Z(3),DELZ,ZSLP,RM,
+        531 |     2       AQ1,AQ2,AQ3,AQ4,AQ5,AALP2,AALP3,AALP4,AALP5,
+        532 |     2       CO1,RECO,EASYM,R2,DZDR(3),ZPO(3),OP3Z(3),TOP3Z(3),
+        533 |     2       ZP3(3),TZP3(3),DO4Z(3),B(3)
+        534 |        COMMON/LLRCM/R(3),ELLR,DEDR(3),RC
+        535 |        COMMON/VBINCM/A1(171),A2(171),A3(171),A4(171),A5(171),ALF(171),
+        536 |     2       BET(171),X1EQ(171),X2EQ(171),FI(171),FIJ(171),AR2,TAR2,BR2
+        537 |     2       ,ALR2,BTR2,ATET,BTET,CTET,RH,RHC,RHS                      11FEB89ST
+        538 |     2       ,A6(171),A7(171),RCT,BTP                                   16FEB89
+        539 |        DIMENSION X(N3TM), DX(N3TM)
+        540 |        DIMENSION FFIT(18,18)
+        541 |        DIMENSION DR1DX(18),DR2DX(18),DR3DX(18),XND(18),XN(18),X0(18)
+        542 |        DIMENSION DU3BDX(18),DUVBDX(18),DUVBDY(18)
+        543 |        DIMENSION DRCDX(18),DX0DRC(18),DFDRC(18,18),DKDX(18)
+        544 |C       FIND NEW X,Y,Z COORDINATES, XN
+        545 |        DO 387 IX=1,16,3
+        546 |          IY = IX + 1
+        547 |          IZ = IX + 2
+        548 |          XN(IX) = X(IX) - X(1)
+        549 |          XN(IY) = X(IY) - X(2)
+        550 |          XN(IZ) = X(IZ) - X(3)
+        551 |387     CONTINUE
+        552 |C       FIND R1,R2,R3
+        553 |        R1S = (X(1)-X(4))**2 + (X(2)-X(5))**2 + (X(3)-X(6))**2
+        554 |        R2S = (X(1)-X(16))**2 + (X(2)-X(17))**2 + (X(3)-X(18))**2
+        555 |        R3S = (X(4)-X(16))**2 + (X(5)-X(17))**2 + (X(6)-X(18))**2
+        556 |        R(1) = SQRT(R1S)
+        557 |        R(2) = SQRT(R2S)
+        558 |        R(3) = SQRT(R3S)
+        559 |C       FIND RC,RC2, AND THE 3 BODY ENREGY AND DERIVATIVES
+        560 |        CALL POTLLR
+        561 |        RC2 = RC*RC
+        562 |C       EVALUATE THE NIJ CARTESIAN FORCE CONSTANTS AT RC
+        563 |C       ALSO EVALUATE THE NIJ DERIVATIVES OF THESE FORCE CONTSTS. W.R.T. RC
+        564 |        DO 200 I=1,18
+        565 |          DO 250 J=1,I
+        566 |            NIJ = ((I*I - I)/2  + 1 + (J-1) )
+        567 |            POLY = A2(NIJ) + A3(NIJ)*RC + A4(NIJ)*RC2
+        568 |            GAUS = EXP(-ALF(NIJ)*(RC-X1EQ(NIJ))**2)
+        569 |            GAUS2 = EXP(-(RC-RCT)**2)                                    16FEB89
+        570 |            GAUS4 = EXP(-(RC+RCT)**2)                                    16FEB89
+        571 |            CORRT = (A6(NIJ)*GAUS2 + A7(NIJ)*GAUS4)                      16FEB89
+        572 |            CORR = RC * CORRT                                            16FEB89
+        573 |            ATH = BET(NIJ)*(RC-X2EQ(NIJ))
+        574 |            TH = A5(NIJ)*TANH(ATH)
+        575 |            G = A1(NIJ) + GAUS*POLY + TH + CORR                          16FEB89
+        576 |            FFIT(I,J) = FI(NIJ) + FIJ(NIJ)*G
+        577 |            TRM1 = -2.D0*ALF(NIJ)*(RC-X1EQ(NIJ))*POLY
+        578 |            TRM2 = A3(NIJ) + 2.0D0*A4(NIJ)*RC
+        579 |            TRM12 = GAUS*(TRM1 + TRM2)
+        580 |            TRMC1 = -2.D0*(RC-RCT)*A6(NIJ)*GAUS2                         16FEB89
+        581 |            TRMC2 = -2.D0*(RC+RCT)*A7(NIJ)*GAUS4                         16FEB89
+        582 |            TRMC = CORRT + RC * (TRMC1 + TRMC2)                          16FEB89
+        583 |            IF(ABS(ATH).GE.44.44D0) THEN
+        584 |             TRM3 = 0.D0
+        585 |            ELSE
+        586 |             TRM3 = BET(NIJ)*A5(NIJ)/(COSH(ATH)*COSH(ATH))
+        587 |            END IF
+        588 |            DFDRC(I,J) = FIJ(NIJ)*( TRM12 + TRM3 + TRMC )                16FEB89
+        589 |250       CONTINUE
+        590 |200     CONTINUE
+        591 |C       NOW FIND THE EQUILIBRIUM VALUES OF X(I) AT RC
+        592 |C       COMPUTE R1(RC),R2(RC) AND THETA(RC)
+        593 |        TR2 = RC/TAR2
+        594 |        T2R2 = SQRT(TR2*TR2 + 1.0D0)
+        595 |        EXR2 = ALR2 * EXP(-BTR2*RC2)                                   11FEB89ST
+            ........................................................................a........
+ a - 1515-019 (S) Syntax is incorrect.
+        596 |        R2F = AR2 * ( TR2 + T2R2 ) + BR2 + EXR2                        11FEB89ST
+        597 |        R1F = R2F - RC
+        598 |        TETA = -ATET*TANH(BTET*RC) + CTET
+        599 |        STETA = SIN(TETA)
+        600 |        CTETA = COS(TETA)
+        601 |C       EVALUATE THE CORRECTION TO K(18,6)                              12FEB89
+        602 |        RPD = R(3) - (R1F + R2F)                                        10MAR89
+        603 |        RPD2 = RPD**2
+        604 |        RPG = EXP(-BTP*RPD2)                                            10MAR89
+        605 |        DFDRP = - FFIT(18,6) * 2.0*BTP*RPD * RPG
+        606 |        FFIT(18,6) = FFIT(18,6)*RPG
+        607 |C       EVALUATE THE EQUILIBRIUM VALUES                                 23FEB89
+        608 |        X0(1) =  0.D0
+        609 |        X0(2) =  0.D0
+        610 |        X0(3) =  0.D0
+        611 |        X0(4) =  0.D0
+        612 |        X0(5) =  0.D0
+        613 |        X0(6) =  R1F
+        614 |        X0(7) =  RH*STETA
+        615 |        X0(8) =  0.D0
+        616 |        X0(9) = -RH*CTETA
+        617 |        X0(10) = -RHC*STETA
+        618 |        X0(11) = -RHS*STETA
+        619 |        X0(12) = -RH*CTETA
+        620 |        X0(13) = -RHC*STETA
+        621 |        X0(14) =  RHS*STETA
+        622 |        X0(15) = -RH*CTETA
+        623 |        X0(16) = 0.D0
+        624 |        X0(17) = 0.D0
+        625 |        X0(18) = -R2F
+        626 |C       NOW EVALUATE THE DISPLACEMENT CARTESIANS, XND
+        627 |        DO 376 IX=1,18
+        628 |          XND(IX) = XN(IX) - X0(IX)
+        629 |376     CONTINUE
+        630 |C       NOW EVALUATE UVIB
+        631 |C       NOTE THAT BECAUSE WE FIX C AT (0,0,0), XND(1)-XND(3) ARE ALWAYS
+        632 |C       ZERO, AND THUS WE EXCLUDE THEM FROM THE ENERGY SUM. NOTE THAT
+        633 |C       THE ASSOCIATED FORCE CONSTANTS, ALTHOUGH THEY PLAY NO ROLE IN THE
+        634 |C       ENERGY DETERMINATION, DO HELP DETERMINE THE DERIVATIVES.
+        635 |        SUM1 = 0.0D0
+        636 |        DO 439 IE=4,18
+        637 |          DO 437 JE=4,IE
+        638 |            SUM1 = SUM1 + FFIT(IE,JE)*XND(IE)*XND(JE)
+        639 |437       CONTINUE
+        640 |439     CONTINUE
+        641 |        SUM2 = 0.0D0
+        642 |        DO 443 IE=4,18
+        643 |          SUM2 = SUM2 + 0.5D0*FFIT(IE,IE)*XND(IE)*XND(IE)
+        644 |443     CONTINUE
+        645 |        EVIB = SUM1 - SUM2
+        646 |C       ADD UVIB AND ULLR
+        647 |        V = EVIB + ELLR
+        648 |C       NOW EVALUATE (BY THE CHAIN RULE) DULLR/DXI
+        649 |        DO 873 ID=1,3
+        650 |          DR1DX(ID) = (X(ID) - X(ID+3))/R(1)
+        651 |          DR2DX(ID) = (X(ID) - X(ID+15))/R(2)
+        652 |873     CONTINUE
+        653 |        DO 874 ID=4,6
+        654 |          DR1DX(ID) = (X(ID) - X(ID-3))/R(1)
+        655 |          DR3DX(ID) = (X(ID) - X(ID+12))/R(3)
+        656 |874     CONTINUE
+        657 |        DO 876 ID=16,18
+        658 |          DR2DX(ID) = (X(ID) - X(ID-15))/R(2)
+        659 |          DR3DX(ID) = (X(ID) - X(ID-12))/R(3)
+        660 |876     CONTINUE
+        661 |        DO 877 ID=1,3
+        662 |          DU3BDX(ID) = DEDR(1)*DR1DX(ID) + DEDR(2)*DR2DX(ID)
+        663 |877     CONTINUE
+        664 |        DO 878 ID=4,6
+        665 |          DU3BDX(ID) = DEDR(1)*DR1DX(ID) + DEDR(3)*DR3DX(ID)
+        666 |878     CONTINUE
+        667 |        DO 879 ID=16,18
+        668 |          DU3BDX(ID) = DEDR(2)*DR2DX(ID) + DEDR(3)*DR3DX(ID)
+        669 |879     CONTINUE
+        670 |        DO 881 ID=7,15
+        671 |          DU3BDX(ID) = 0.0D0
+        672 |881     CONTINUE
+        673 |C       FIND DRC/DX(KD) FOR KD=1-6,16-18
+        674 |        DO 726 KD=1,3
+        675 |         DRCDX(KD) = DR2DX(KD) - DR1DX(KD)
+        676 |726     CONTINUE
+        677 |        DO 727 KD=4,6
+        678 |         DRCDX(KD) =  - DR1DX(KD)                                        30DEC88
+        679 |727     CONTINUE
+        680 |        DO 729 KD=16,18
+        681 |         DRCDX(KD) = DR2DX(KD)                                           30DEC88
+        682 |729     CONTINUE
+        683 |C       FIND DX0(KD)/DRC                                                 23FEB89
+        684 |        DO 731 KD=1,5
+        685 |         DX0DRC(KD) = 0.D0
+        686 |731     CONTINUE
+        687 |        TG6 = 2.D0*BTR2*RC*EXR2                                          11FEB89
+        688 |        TRM6 = TR2/T2R2
+        689 |        BRC = BTET*RC
+        690 |        IF(ABS(BRC).GE.44.44D0) THEN
+        691 |          CSHBRC = 0.D0
+        692 |        ELSE
+        693 |          CSHBRC = 1.D0/(COSH(BRC)*COSH(BRC))
+        694 |        END IF
+        695 |        DSTET = -ATET*BTET*CTETA*CSHBRC
+        696 |        DCTET =  ATET*BTET*STETA*CSHBRC
+        697 |        DX0DRC(6) = -0.5D0*(1.D0 - TRM6) - TG6                           11FEB89
+        698 |        DX0DRC(7) = RH*DSTET
+        699 |        DX0DRC(8) = 0.D0
+        700 |        DX0DRC(9) = -RH*DCTET
+        701 |        DX0DRC(10) = -RHC*DSTET
+        702 |        DX0DRC(11) = -RHS*DSTET
+        703 |        DX0DRC(12) = DX0DRC(9)
+        704 |        DX0DRC(13) = DX0DRC(10)
+        705 |        DX0DRC(14) = -DX0DRC(11)
+        706 |        DX0DRC(15) = DX0DRC(9)
+        707 |        DX0DRC(16) = 0.D0
+        708 |        DX0DRC(17) = 0.D0
+        709 |        DX0DRC(18) = -0.5D0*(1.D0 + TRM6) + TG6                          11FEB89
+        710 |C       EVALUATE D(R30)/D(RC) WHICH IS NEEDED FOR DFDRC(18,6)
+        711 |        DRPDRC = DX0DRC(6) - DX0DRC(18)                                 12FEB89
+        712 |        DFDRC(18,6) = DFDRC(18,6) * RPG - DFDRP*DRPDRC                  12FEB89
+        713 |C       NOW EVALUATE DUVIB/DXND(K)
+        714 |        DO 452 KD=1,18
+        715 |         SUM3 = 0.0D0
+        716 |         DO 453 ID=1,KD
+        717 |           SUM3 = SUM3 + FFIT(KD,ID) * XND(ID)
+        718 |453      CONTINUE
+        719 |         DO 454 ID=KD+1,18
+        720 |           SUM3 = SUM3 + FFIT(ID,KD) * XND(ID)
+        721 |454      CONTINUE
+        722 |         DUVBDX(KD) = SUM3
+        723 |452     CONTINUE
+        724 |C       CORRECT THE DERIVATIVES OF X(1),X(2),X(3) FOR THE FACT THAT WE
+        725 |C       NEED THE DERIVATIVE WITH RESPECT TO X, NOT WITH RESPECT TO XN
+        726 |        SUM1 = 0.D0
+        727 |        SUM2 = 0.D0
+        728 |        SUM3 = 0.D0
+        729 |        DO 922 J=4,16,3
+        730 |         SUM1 = SUM1 - DUVBDX(J)
+        731 |         SUM2 = SUM2 - DUVBDX(J+1)
+        732 |         SUM3 = SUM3 - DUVBDX(J+2)
+        733 |922     CONTINUE
+        734 |        DUVBDX(1) = SUM1
+        735 |        DUVBDX(2) = SUM2
+        736 |        DUVBDX(3) = SUM3
+        737 |C       ADD FOR KD=1-6,16-18, ADD THE CHAIN RULE TERM FOR DX0DX(KD)
+        738 |        DO 456 KD=1,6
+        739 |         SUM0 = 0.D0
+        740 |         DO 457 ID=1,18
+        741 |          SUM0 = SUM0 + DUVBDX(ID)*DX0DRC(ID)
+        742 |457      CONTINUE
+        743 |         DUVBDY(KD) = DUVBDX(KD) - DRCDX(KD)*SUM0
+        744 |456     CONTINUE
+        745 |        DO 458 KD=16,18
+        746 |         SUM0 = 0.D0
+        747 |         DO 459 ID=1,18
+        748 |          SUM0 = SUM0 + DUVBDX(ID)*DX0DRC(ID)
+        749 |459      CONTINUE
+        750 |         DUVBDY(KD) = DUVBDX(KD) - DRCDX(KD)*SUM0
+        751 |458     CONTINUE
+        752 |        DO 356 KD=7,15
+        753 |         DUVBDY(KD) = DUVBDX(KD)
+        754 |356     CONTINUE
+        755 |C       NOW ADD THE DERIVATIVE TERMS DO TO THE DEPENDENCE OF THE FC'S ON RC
+        756 |        DR3DX(1) = 0.D0                                                 10MAR89
+        757 |        DR3DX(2) = 0.D0                                                 10MAR89
+        758 |        DR3DX(3) = 0.D0                                                 10MAR89
+        759 |        DO 342 KK=1,6
+        760 |         SUMK = 0.0D0
+        761 |         SUMI = 0.0D0
+        762 |         DO 343 I=1,18
+        763 |          DO 344 J=1,I
+        764 |           SUMK = SUMK + DFDRC(I,J)*XND(I)*XND(J)
+        765 |344       CONTINUE
+        766 |          SUMI = SUMI + DFDRC(I,I)*XND(I)*XND(I)
+        767 |343      CONTINUE
+        768 |         DKDX(KK) = DRCDX(KK)*(SUMK - 0.5D0*SUMI)
+        769 |     2              + DR3DX(KK) * DFDRP*XND(18)*XND(6)                  10MAR89
+        770 |342     CONTINUE
+        771 |        DO 346 KK=16,18
+        772 |         SUMK = 0.0D0
+        773 |         SUMI = 0.0D0
+        774 |         DO 347 I=1,18
+        775 |          DO 348 J=1,I
+        776 |           SUMK = SUMK + DFDRC(I,J)*XND(I)*XND(J)
+        777 |348       CONTINUE
+        778 |          SUMI = SUMI + DFDRC(I,I)*XND(I)*XND(I)
+        779 |347      CONTINUE
+        780 |         DKDX(KK) = DRCDX(KK)*(SUMK - 0.5D0*SUMI)
+        781 |     2              + DR3DX(KK) * DFDRP*XND(18)*XND(6)                  10MAR89
+        782 |346     CONTINUE
+        783 |        DO 383 KK=1,6
+        784 |         DUVBDY(KK) = DUVBDY(KK) + DKDX(KK)
+        785 |383     CONTINUE
+        786 |        DO 384 KK=16,18
+        787 |         DUVBDY(KK) = DUVBDY(KK) + DKDX(KK)
+        788 |384     CONTINUE
+        789 |C       ADD PARTIAL DERIVATIVES TO YEILD DX(I)
+        790 |        DO 462 KD=1,18
+        791 |          DX(KD) = DUVBDY(KD) + DU3BDX(KD)
+        792 |462     CONTINUE
+        793 |        RETURN
+        794 |        END
+** surf   === End of Compilation 4 ===
+
+>>>>> FILE TABLE SECTION <<<<<
+
+
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    cmc.f                       08/21/99   13:43:05
+
+>>>>> COMPILATION UNIT EPILOGUE SECTION <<<<<
+
+
+FORTRAN Summary of Diagnosed Conditions
+
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    1           0         1           0          0            0
+    Elapsed time..............................................00:00:00
+    Total cpu time............................................   0.450
+    Virtual cpu time..........................................   0.490
+   ** Compilation unit failed.
+
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+
+        ==  On / Off Options  ==
+        ESCAPE        I4            OBJECT        SAVE          SOURCE
+
+        ==  Options Of Integer Type ==
+        AUX_SIZE(8192)        BK_SIZE(50)           CHARLEN(500)
+        CN_SIZE(1024)         FIXED(72)             MAXMEM(2048)
+        NA_SIZE(32768)        PD_SIZE(128)          SPILLSIZE(512)
+        ST_SIZE(2048)         TKA_SIZE(20000)       TKQ_SIZE(10000)
+
+        ==  Options Of Character Type  ==
+        NOATTR( )             AUTODBL( NONE )       NOCI( )
+        FLAG(W,W)             FLOAT( MAF FOLD )     NOFLTTRAP( )
+        FPRET( STD )          HALT(U)               IEEE( NEAR )
+        NOPOSITION( )         SIGTRAP(              NOXREF( )
+
+>>>>> SOURCE SECTION <<<<<
+        795 |C
+        796 |C
+        797 |C
+        798 |C     ENTRY POT FOR LEPSLR
+        799 |      SUBROUTINE POTLLR
+        800 |      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+        801 |      COMMON/LRINCM/D(3),RE(3),BETA(3),Z(3),DELZ,ZSLP,RM,
+        802 |     2       AQ1,AQ2,AQ3,AQ4,AQ5,AALP2,AALP3,AALP4,AALP5,
+        803 |     2       CO1,RECO,EASYM,R2,DZDR(3),ZPO(3),OP3Z(3),TOP3Z(3),
+        804 |     2       ZP3(3),TZP3(3),DO4Z(3),B(3)
+        805 |      COMMON/LLRCM/R(3),E,DEDR(3),RC
+        806 |      DIMENSION X(3),COUL(3),EXCH(3)
+        807 |      DIMENSION QRC(3),ALPH(3),QRC2(3)                                  07DEC87
+        808 |      DIMENSION COTRM(3),ULRI(3),AQR(3),AQR4(3)                         01AUG88
+        809 |      DIMENSION CTARG1(3)                                               25AUG88
+        810 |      DIMENSION TD(3),DCDR(3),ALPP(3),QP(3),QP3(3)                      26DEC88
+        811 |      DO 50 I=1,2                                                       13OCT88
+        812 |      ARGZ = ZSLP*(R(I) - RM)                                           15OCT88
+        813 |      ZTMP = Z(I) + DELZ*0.5D0*(1.D0 + TANH(ARGZ) )                     15OCT88
+        814 |      IF(ABS(ARGZ).GE.44.44D0) THEN                                     15OCT88
+        815 |        CZ = 1.D36                                                      15OCT88
+        816 |      ELSE                                                              15OCT88
+        817 |        CZ = (COSH(ARGZ))**2                                            15OCT88
+        818 |      END IF                                                            15OCT88
+        819 |      DZDR(I) = 0.5D0*DELZ*ZSLP/CZ                                      15OCT88
+        820 |C   COMPUTE USEFUL CONSTANTS                                            13OCT88
+        821 |      ZPO(I) = 1.0D0 + ZTMP                                             13OCT88
+        822 |      OP3Z(I) = 1.0D0 + 3.0D0*ZTMP                                      13OCT88
+        823 |      TOP3Z(I) = 2.0D0*OP3Z(I)                                          13OCT88
+        824 |      ZP3(I) = ZTMP + 3.0D0                                             13OCT88
+        825 |      TZP3(I) = 2.0D0*ZP3(I)                                            13OCT88
+        826 |      DO4Z(I) = D(I)/4.0D0/ZPO(I)                                       13OCT88
+        827 |   50 B(I) = BETA(I)*DO4Z(I)*2.0D0                                      13OCT88
+        828 |      S = 0.0D0
+        829 |      DO 21 I = 1,3
+        830 |      X(I) = EXP(-BETA(I)*(R(I)-RE(I)))
+        831 |      COUL(I) = DO4Z(I)*(ZP3(I)*X(I)-TOP3Z(I))*X(I)
+        832 |      EXCH(I) = DO4Z(I)*(OP3Z(I)*X(I)-TZP3(I))*X(I)
+        833 |   21 S = S+EXCH(I)
+        834 |      RAD = SQRT((EXCH(1)-EXCH(2))**2+(EXCH(2)-EXCH(3))**2+
+        835 |     1      (EXCH(3)-EXCH(1))**2)
+        836 |      E = -RAD/R2
+        837 |      DO 22 I = 1,3
+        838 |      DEDR(I) = 0.D0                                                    03JUL83
+        839 |      IF(X(I).LT.1.D-30) GO TO 22                                       03JUL83
+        840 |      TZ = (3.0D0*EXCH(I)-S)/R2                                         15OCT88
+        841 |      T= TZ*(OP3Z(I)*X(I)-ZP3(I))                                       03JUL83
+        842 |C
+        843 |C     PRINT OUT A WARNING IF DIVIDE BY ZERO IS GOING TO OCCUR--NOTE
+        844 |C     THIS WILL NOT BE PRINTED OUT FOR THE CASE OF 0/0.                 11/21/85
+        845 |      IF(ABS(RAD).LT.1.D-32.AND.ABS(T).GT.1.D-12) THEN
+        846 |        WRITE(6,6000) T,RAD
+        847 | 6000   FORMAT(' IN LEPS POTENTIAL T,RAD=',1P,2E15.7,'  T/RAD SET TO T')
+        848 |      ELSE IF(ABS(RAD).GT.1.D-32) THEN
+        849 |        T = T/RAD
+        850 |        TZ = TZ/RAD
+        851 |      END IF
+        852 |C
+        853 |      DEDRZ = DZDR(I)*(DO4Z(I)*X(I)*(X(I)-6.D0)-(COUL(I)/ZPO(I)) -
+        854 |     2        TZ*(DO4Z(I)*X(I)*(3.D0*X(I)-2.D0) - (EXCH(I)/ZPO(I))))    15OCT88
+        855 |      DEDR(I) = B(I)*X(I)*(T                                            03JUL83
+        856 |     1          -ZP3(I)*X(I)+OP3Z(I)) + DEDRZ                           15OCT88
+        857 |   22 E = E+COUL(I)
+        858 |      E = E+D(2)
+        859 |C     NOW ADD THE LONG RANGE TERM                                       04DEC87
+        860 |C     R(1) = R(CL-CH3), R(2) = R(CH3-CL') , R(3) = R(CL-CL')            05DEC87
+        861 |C     WHERE CL' IS THE LEAVING GROUP                                    05DEC87
+        862 |      RC = R(2) - R(1)                                                  05DEC87
+        863 |      RC3 = -RC                                                         22AUG88
+        864 |      FACTH = RC - AQ4                                                  22AUG88
+        865 |      FACTHP = RC3 - AQ4                                                22AUG88
+        866 |      AQR3 = AQ1*(1.D0-EXP(-AQ5*R(3)**2))
+        867 |      ARGTH = AQR3*FACTH                                                22AUG88
+        868 |      ARGTHP = AQR3*FACTHP                                              22AUG88
+        869 |      QRC(1) = AQ3 + AQ2*0.5D0*(TANH(ARGTH)+ 1.0D0)                     25AUG88
+        870 |      QRC(3) = AQ3 + AQ2*0.5D0*(TANH(ARGTHP)+ 1.0D0)                    25AUG88
+        871 |      QRC(2) = -1.0D0 - QRC(1) -QRC(3)                                  06DEC87
+        872 |      QRC2(1) = QRC(1)**2                                               07DEC87
+        873 |      QRC2(3) = QRC(3)**2                                               07DEC87
+        874 |      QRC2(2) = QRC(2)**2                                               07DEC87
+        875 |      ALPH(1) = AALP2*QRC(1) + AALP3                                    01AUG88
+        876 |      ALPH(3) = AALP2*QRC(3) + AALP3                                    01AUG88
+        877 |      ALPH(2) = AALP4*QRC(2) + AALP5                                    05DEC87
+        878 |C     The index in alphp is the index of the associated charge-         18SEP88
+        879 |C     permanent dipole distance                                         18SEP88
+        880 |C     NOTE: THE PRESCRIPTION USED TO COVER ALL IJ PAIRS IS WRITTEN      05DEC87
+        881 |C     IN SUCH A WAY THAT THE R(I) AS DEFINED ABOVE GIVE THE CORRECT     05DEC87
+        882 |C     DISTANCE R-IJ; EG. R(I) = R-IJ                                    05DEC87
+        883 |      ULR = 0.0D0                                                       05DEC87
+        884 |      DO 100 I=1,3                                                      05DEC87
+        885 |        J = I + 1                                                       05DEC87
+        886 |        IF(J.GT.3) J = 1                                                05DEC87
+        887 |C       THIS IF IS TO AVOID DIVIDE BY ZEROES                            05DEC87
+        888 |        IF(R(I).NE.0.D0)THEN                                            05DEC87
+        889 |          RI2 = R(I)**2                                                 18SEP88
+        890 |          RI4 = R(I)**4                                                 05DEC87
+        891 |          RDIF = R(I) - RECO                                            26DEC88
+        892 |          CTARG1(I) = CO1*RDIF                                          26DEC88
+        893 |          COTRM(I) =(0.5D0*(1.0D0+TANH(CTARG1(I)) ))**2                 07SEP88
+        894 |          UEL = (QRC(I)*QRC(J)) /  R(I)                                 09SEP88
+        895 |          UINDI = (ALPH(I)*QRC2(J)) / (2.0D0 * RI4)                     26AUG88
+        896 |          UINDJ = (ALPH(J)*QRC2(I)) / (2.0D0 * RI4)                     26AUG88
+        897 |C         TRMIJ = UEL + UPERM - UINDI - UINDJ (UPERM=0; IT'S UNDEFINED) 18SEP88
+        898 |          TRMIJ = UEL - UINDI - UINDJ                                   11JUN89
+        899 |        ELSE                                                            05DEC87
+        900 |          TRMIJ = 0.0D0                                                 05DEC87
+        901 |        END IF                                                          05DEC87
+        902 |        ULRI(I) = TRMIJ                                                 07JAN88
+        903 |C       NOTE: IF R=0 SUCH THAT TRMIJ IS SET = 0.0, THIS TRMIJ ALREADY   26AUG88
+        904 |C       "INCLUDES" THE COTRM--HOWEVER, SINCE COTRM IS 0 FOR R=0, RE-    26AUG88
+        905 |C       MULTIPLYING IT IS INCONSEQUENTIAL                               26AUG88
+        906 |        TRMIJ = COTRM(I)*TRMIJ                                          26AUG88
+        907 |        ULR = TRMIJ + ULR                                               05DEC87
+        908 |100   CONTINUE                                                          05DEC87
+        909 |      E = E + ULR                                                       05DEC87
+        910 |      E = E + EASYM                                                     18OCT88
+        911 |C     ADD A GAUSSIAN IN RC TO LOWER THE BARRIER TO THE SEMIEMPERICAL VALUEFEB89
+        912 |      COF = 2.0D0*(0.52917706D0**2)
+        913 |      EGAU = -0.002278850D0*EXP(-COF*(RC**2))
+        914 |      E = E + EGAU
+        915 |      DEGDRC = -2.D0*COF*RC*EGAU
+        916 |      DEGDR1 = -DEGDRC
+        917 |      DEGDR2 = DEGDRC
+        918 |C     NOW CALCULATE DERIVATIVES OF ULR                                  05DEC87
+        919 |C     THE NEXT 2 SETS OF IF STATEMENTS WERE INSERTED TO AVOID OVERFLOW  19JAN88
+        920 |C     ON THE VAX WHEN TRYING TO CALCULATE CPLS +/OR CMNS                19JAN88
+        921 |C     THEY CAN BE SET DIFFERENTLY ON THE CRAY WHERE MUCH HIGHER         19JAN88
+        922 |C     EXPONENTIALS ARE ALLOWED (YEILDING SLIGHTLY MORE ACCURATE         19JAN88
+        923 |C     DERIVATIVES FOR VERY LARGE VALUES OF RC)                          19JAN88
+        924 |      IF(ABS(ARGTH).GE.44.44D0) THEN                                    19JAN88
+        925 |        CPLS = 1.D36                                                    19JAN88
+        926 |      ELSE                                                              19JAN88
+        927 |        CPLS = (COSH(ARGTH))**2                                         07JAN88
+        928 |      END IF                                                            19JAN88
+        929 |      IF(ABS(ARGTHP).GE.44.44D0) THEN                                   19JAN88
+        930 |        CMNS = 1.D36                                                    19JAN88
+        931 |      ELSE                                                              19JAN88
+        932 |        CMNS = (COSH(ARGTHP))**2                                        07JAN88
+        933 |      END IF                                                            19JAN88
+        934 |      AQ22 = 0.5D0*AQ2
+        935 |      QP(1) = AQ22*AQR3/CPLS
+        936 |      QP(3) = - AQ22*AQR3/CMNS
+        937 |      QP(2) = -(QP(1) + QP(3))
+        938 |      DAQR3 = AQ1*AQ5*2.D0*R(3)*EXP(-(AQ5*R(3)**2))
+        939 |      QP3(1) = AQ22*DAQR3*FACTH/CPLS
+        940 |      QP3(3) = AQ22*DAQR3*FACTHP/CMNS
+        941 |      QP3(2) = -(QP3(1) + QP3(3))
+        942 |      ALPP(1) = AALP2
+        943 |      ALPP(2) = AALP4
+        944 |      ALPP(3) = ALPP(1)
+        945 |      SUM1 = 0.D0
+        946 |      SUM2 = 0.D0
+        947 |      SUM3 = 0.D0
+        948 |      DO 140 I=1,3                                                      10OCT88
+        949 |        J = I+1                                                         10OCT88
+        950 |        IF(J.GT.3) J=1                                                  10OCT88
+        951 |        RI2 = R(I)**2                                                   10OCT88
+        952 |        RI3 = RI2*R(I)
+        953 |        RI4 = RI2*RI2
+        954 |        RI5 = RI3*RI2                                                   10OCT88
+        955 |        TQ1 = -(QP(I)*QRC(J)+QRC(I)*QP(J))/R(I)
+        956 |        TA1A = (ALPP(I)*QP(I)*QRC2(J) + 2.D0*ALPH(I)*QRC(J)*QP(J) )
+        957 |        TA1B = (ALPP(J)*QP(J)*QRC2(I) + 2.D0*ALPH(J)*QRC(I)*QP(I) )
+        958 |        TA1 = (TA1A + TA1B)/(2.D0*RI4)
+        959 |        TMP1 = (TQ1 + TA1)                                              26DEC88
+        960 |        DULR1 = TMP1*COTRM(I)
+        961 |        DULR2 = - DULR1
+        962 |        TQ3 = (QP3(I)*QRC(J)+QRC(I)*QP3(J))/R(I)
+        963 |        TA3A =-(ALPP(I)*QP3(I)*QRC2(J) + 2.D0*ALPH(I)*QRC(J)*QP3(J) )
+        964 |        TA3B =-(ALPP(J)*QP3(J)*QRC2(I) + 2.D0*ALPH(J)*QRC(I)*QP3(I) )
+        965 |        TA3 = (TA3A + TA3B)/(2.D0*RI4)
+        966 |        TMP3 = (TQ3 + TA3)                                              26DEC88
+        967 |        DULR3 = TMP3*COTRM(I)
+        968 |        TQ = - QRC(I)*QRC(J)/RI2
+        969 |        TA = 2.D0*(ALPH(I)*QRC2(J) + ALPH(J)*QRC2(I))/RI5
+        970 |        SUM1 = DULR1 + SUM1
+        971 |        SUM2 = DULR2 + SUM2
+        972 |        SUM3 = DULR3 + SUM3
+        973 |        TD(I) = (TQ + TA)*COTRM(I)                                      26DEC88
+        974 |        IF(ABS(CTARG1(I)).GE.44.44D0) THEN                              10OCT88
+        975 |          CC = 1.D36                                                    10OCT88
+        976 |        ELSE                                                            10OCT88
+        977 |          CC = (COSH(CTARG1(I)))**2                                     10OCT88
+        978 |        END IF                                                          10OCT88
+        979 |        DCDR(I) = SQRT(COTRM(I))*CO1/CC
+        980 |140   CONTINUE                                                          10OCT88
+        981 |      SDULR1 = SUM1 + TD(1)
+        982 |      SDULR2 = SUM2 + TD(2)
+        983 |      SDULR3 = SUM3 + TD(3)
+        984 |      TDULR1 = SDULR1 + ULRI(1)*DCDR(1)                                 26DEC88
+        985 |      TDULR2 = SDULR2 + ULRI(2)*DCDR(2)                                 26DEC88
+        986 |      TDULR3 = SDULR3 + ULRI(3)*DCDR(3)
+        987 |      DEDR(1) = TDULR1 + DEDR(1) + DEGDR1                               23FEB89
+        988 |      DEDR(2) = TDULR2 + DEDR(2) + DEGDR2                               23FEB89
+        989 |      DEDR(3) = TDULR3 + DEDR(3)                                        10OCT88
+        990 |9373  CONTINUE                                                          10OCT88
+        991 |      RETURN
+        992 |      END
+** potllr   === End of Compilation 5 ===
+
+>>>>> FILE TABLE SECTION <<<<<
+
+
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    cmc.f                       08/21/99   13:43:05
+
+>>>>> COMPILATION UNIT EPILOGUE SECTION <<<<<
+
+
+FORTRAN Summary of Diagnosed Conditions
+
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+    Elapsed time..............................................00:00:01
+    Total cpu time............................................   0.350
+    Virtual cpu time..........................................   0.350
+   ** Compilation unit successful.
+ 
+ >>>>> OPTIONS SECTION <<<<<
+ ***   Options In Effect   ***
+ 
+         ==  On / Off Options  ==
+         ESCAPE        I4            OBJECT        SAVE          SOURCE
+ 
+         ==  Options Of Integer Type ==
+         AUX_SIZE(8192)        BK_SIZE(50)           CHARLEN(500)
+         CN_SIZE(1024)         FIXED(72)             MAXMEM(2048)
+         NA_SIZE(32768)        PD_SIZE(128)          SPILLSIZE(512)
+         ST_SIZE(2048)         TKA_SIZE(20000)       TKQ_SIZE(10000)
+ 
+         ==  Options Of Character Type  ==
+         NOATTR( )             AUTODBL( NONE )       NOCI( )
+         FLAG(W,W)             FLOAT( MAF FOLD )     NOFLTTRAP( )
+         FPRET( STD )          HALT(U)               IEEE( NEAR )
+         NOPOSITION( )         SIGTRAP(              NOXREF( )
+ 
+ >>>>> SOURCE SECTION <<<<<
+
+
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+
+
+FORTRAN Summary of Diagnosed Conditions
+
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    1           0         1           0          0            0
+
+
+    Source records read.......................................     993
+    Compilation start.............................. 08/22/99  15:02:12
+    Compilation end................................ 08/22/99  15:02:14
+    Elapsed time..............................................00:00:02
+    Total cpu time............................................   1.810
+    Virtual cpu time..........................................   1.910
+1501-511  Compilation failed for file cmc.f.
+1501-543  Object file created.

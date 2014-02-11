@@ -15,6 +15,9 @@ This folder holds the template used as a starting point to convert code that has
 
 This folder contains all of the subroutines that have already been completed.
 
+##Old
+This is where the old non-converted code is.
+
 ##Other
 
-There wil sometimes be other folders. These with usually be porjects in progress.
+There will sometimes be other folders. These with usually be porjects in progress.

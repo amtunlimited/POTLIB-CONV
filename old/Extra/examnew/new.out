@@ -1,0 +1,697 @@
+ 
+Fri Jul 28 16:21:13 EDT 2006
+ 
+ 
+  **** doing clh2dima.f              ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** setspl   === End of Compilation 3 ===
+** hclm   === End of Compilation 4 ===
+** hcl   === End of Compilation 5 ===
+** h2curv   === End of Compilation 6 ===
+** splnin   === End of Compilation 7 ===
+** spline   === End of Compilation 8 ===
+** eign   === End of Compilation 9 ===
+** ptpacm   === End of Compilation 10 ===
+1501-510  Compilation successful for file clh2dima.f.
+ 
+
+ *****Potential Energy Surface *****
+
+    ClH2 DIMA potential energy surface
+
+    Parameters:
+    Bond                                     Cl-H        H-H        H-Cl
+    Dissociation energies (atomic units):      .16955     .17447     .16955
+
+    Title card for the potential routine:
+    Final BNL DIM surface for CL+H2 -- 5 and 7 kcal/mole barriers                   Spline fits replaced with analytic forms where possible                         
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .4145406570    
+
+
+ 
+  **** thru clh2dima.f              ****  
+ 
+  **** doing clh2dims.f              ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** setspl   === End of Compilation 3 ===
+** spline   === End of Compilation 4 ===
+** splnin   === End of Compilation 5 ===
+** eign   === End of Compilation 6 ===
+** ptpacm   === End of Compilation 7 ===
+1501-510  Compilation successful for file clh2dims.f.
+ 
+
+ *****Potential Energy Surface *****
+
+    ClH2 DIMS potential energy surface
+
+    Title cards for the potential routine:
+    Final BNL DIM surface for Cl+H2 -- 5 and 7 kcal/mole barriers                   Spline fits used in atomic units                                            
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .4145312550    
+
+
+ 
+  **** thru clh2dims.f              ****  
+ 
+  **** doing clh2g1.f                ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** ptpacm   === End of Compilation 3 ===
+1501-510  Compilation successful for file clh2g1.f.
+ 
+
+    PREPOT has been called for the ClH2 G1 potential
+
+    Potential energy surface parameters:
+    Bond                                     Cl-H        H-H        H-Cl
+    Dissociation energies (kcal/mol):       106.44700  109.45800  106.44700
+    Equilibrium bond lengths (Angstroms):     1.27320     .74127    1.27320
+    Morse beta parameters (Angstroms**-1):    1.86740    1.94130    1.86740
+    Sato parameters:                           .27700     .07700     .27700
+
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .4181359805    
+
+
+ 
+  **** thru clh2g1.f                ****  
+ 
+  **** doing clh2g3ta1.f             ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** dlaev2   === End of Compilation 3 ===
+** ptpacm   === End of Compilation 4 ===
+1501-510  Compilation successful for file clh2g3ta1.f.
+ 
+ Potential code called for ClH2 surface TA1.
+ Last modified 16 August 1994 - Version 1.1
+ Surfaces separated by  400.000000000000000  cm**-1.
+ 
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .0000000000E+00
+
+
+  Multiple Energies
+  e1 =      .5490497663    
+  e2 =     -.6648297982E-01
+  e3 =      .4738460723    
+
+
+ 
+  **** thru clh2g3ta1.f             ****  
+ 
+  **** doing clh2g3ta2.f             ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** dlaev2   === End of Compilation 3 ===
+** ptpacm   === End of Compilation 4 ===
+1501-510  Compilation successful for file clh2g3ta2.f.
+ 
+ Potential code called for ClH2 surface TA2.
+ Last modified 16 August 1994 - Version 1.1
+ Surfaces separated by  100.000000000000000  cm**-1.
+ 
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .0000000000E+00
+
+
+  Multiple Energies
+  e1 =      .5486145727    
+  e2 =     -.6622914117E-01
+  e3 =      .4736980139    
+
+
+ 
+  **** thru clh2g3ta2.f             ****  
+ 
+  **** doing clh2g3ta3.f             ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** dlaev2   === End of Compilation 3 ===
+** ptpacm   === End of Compilation 4 ===
+1501-510  Compilation successful for file clh2g3ta3.f.
+ 
+ Potential code called for ClH2 surface TA3.
+ Last modified 16 August 1994 - Version 1.1
+ Surfaces separated by  100.000000000000000  cm**-1.
+ 
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .0000000000E+00
+
+
+  Multiple Energies
+  e1 =      .4902238598    
+  e2 =     -.3217114946E-01
+  e3 =      .4538327521    
+
+
+ 
+  **** thru clh2g3ta3.f             ****  
+ 
+  **** doing clh2g3ta4.f             ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** dlaev2   === End of Compilation 3 ===
+** ptpacm   === End of Compilation 4 ===
+1501-510  Compilation successful for file clh2g3ta4.f.
+ 
+ Potential code called for ClH2 surface TA4.
+ Last modified 26 August 1994 - Version 1.2
+ Surfaces separated by  100.000000000000000  cm**-1.
+ 
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .0000000000E+00
+
+
+  Multiple Energies
+  e1 =      .5923027243    
+  e2 =     -.9171111534E-01
+  e3 =      .4885613066    
+
+
+ 
+  **** thru clh2g3ta4.f             ****  
+ 
+  **** doing clhbr.f                 ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+1501-510  Compilation successful for file clhbr.f.
+ 
+
+    PREPOT has been called for Cl + HBr
+    Extended LEPS function
+
+    Potential energy surface parameters:
+    Bond                                      Cl-H       H-Br       Br-Cl
+    Dissociation energies (kcal/mol):       106.40000   90.24000   52.09000
+    Equilibrium bond lengths (Angstroms):     1.27500    1.41400    2.13600
+    Morse beta parameters (Angstroms**-1):    1.86700    1.85100    1.92300
+    Sato parameters:                           .02000     .02000     .00000
+
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      1.045058928    
+
+
+ 
+  **** thru clhbr.f                 ****  
+ 
+  **** doing fh25secgm4.f            ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** corr2   === End of Compilation 3 ===
+** damp   === End of Compilation 4 ===
+** corr3   === End of Compilation 5 ===
+** vlond   === End of Compilation 6 ===
+** thcent   === End of Compilation 7 ===
+** xtanh   === End of Compilation 8 ===
+** switch   === End of Compilation 9 ===
+** ptpacm   === End of Compilation 10 ===
+1501-510  Compilation successful for file fh25secgm4.f.
+ 
+
+    PREPOT has been called for the FH2 surface 5SECGM4
+    SCALE = 1.0, a = 0.103, b = 1/sqrt(.38), R0 = 2.0
+
+    Potential parameters
+
+    Parameters for the H2 diatomic:
+       a4   =   -.393828    a5  =    .167810   a6  =   -.017081
+
+    Parameters for the FH diatomic:
+       Deff =   2.633449    a7  =    .417523   a8  =   -.090289
+       c11  =   -.071547    c12 =   -.108550
+       c21  =    .050461    c22 =   -.370255
+
+    Parameters for the 3-body term:
+       J    =    .296668    p   =    .950000   c1  =    .180000
+       c2   =   2.140000    c3  =    .078606   c4  =    .180000
+
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .4925025140E-02
+
+
+ 
+  **** thru fh25secgm4.f            ****  
+ 
+  **** doing h2skh.f                 ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+1501-510  Compilation successful for file h2skh.f.
+ 
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .5366030442    
+
+
+ 
+  **** thru h2skh.f                 ****  
+ 
+  **** doing h3bkmp.f                ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** h3tot   === End of Compilation 3 ===
+** triplt   === End of Compilation 4 ===
+** vh2opt   === End of Compilation 5 ===
+** h3lond   === End of Compilation 6 ===
+** vascal   === End of Compilation 7 ===
+** acalc   === End of Compilation 8 ===
+** compac   === End of Compilation 9 ===
+** casym   === End of Compilation 10 ===
+** csym   === End of Compilation 11 ===
+** vbcb   === End of Compilation 12 ===
+1501-510  Compilation successful for file h3bkmp.f.
+ 
+
+    PREPOT has been called for the H3 potential energy surface BKMP
+    version number 706.0
+
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .2524533665E-01
+
+
+ 
+  **** thru h3bkmp.f                ****  
+ 
+  **** doing h3.f                    ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** h3   === End of Compilation 3 ===
+** h3acct   === End of Compilation 4 ===
+** h3coor   === End of Compilation 5 ===
+** h3cor2   === End of Compilation 6 ===
+** h3cor3   === End of Compilation 7 ===
+** h3damp   === End of Compilation 8 ===
+** h3g   === End of Compilation 9 ===
+** h3h   === End of Compilation 10 ===
+** h3h2hf   === End of Compilation 11 ===
+** h3leps   === End of Compilation 12 ===
+** h3swit   === End of Compilation 13 ===
+** h3trip   === End of Compilation 14 ===
+** h3va   === End of Compilation 15 ===
+** h3vii   === End of Compilation 16 ===
+** h3viii   === End of Compilation 17 ===
+1501-510  Compilation successful for file h3.f.
+ 
+
+    Prepot has been called for H + HH
+    DMBE potential energy surface
+    The energy for the ground electronic state is calculated.
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .0000000000E+00
+
+
+  Multiple Energies
+  e1 =      .2561456852E-01
+  e2 =      .0000000000E+00
+  e3 =      .0000000000E+00
+
+
+ 
+  **** thru h3.f                    ****  
+ 
+  **** doing h3lsth1d.f              ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** vh2   === End of Compilation 3 ===
+** spl1d2   === End of Compilation 4 ===
+** vbigr   === End of Compilation 5 ===
+** ptpacm   === End of Compilation 6 ===
+1501-510  Compilation successful for file h3lsth1d.f.
+
+    PREPOT has been called for the H3 potential energy surface LSTH
+ 
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .2675021901E-01
+
+
+ 
+  **** thru h3lsth1d.f              ****  
+ 
+  **** doing h3lstha.f               ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** vh2   === End of Compilation 3 ===
+** vkw   === End of Compilation 4 ===
+** vset   === End of Compilation 5 ===
+** vbigr   === End of Compilation 6 ===
+** ptpacm   === End of Compilation 7 ===
+** mxlneq   === End of Compilation 8 ===
+1501-510  Compilation successful for file h3lstha.f.
+ 
+
+    PREPOT has been called for the H3 potential energy surface LSTH surface a
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .2586897893E-01
+
+
+ 
+  **** thru h3lstha.f               ****  
+ 
+  **** doing h3lsthb.f               ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** vh2   === End of Compilation 3 ===
+** vtull   === End of Compilation 4 ===
+** ptpacm   === End of Compilation 5 ===
+1501-510  Compilation successful for file h3lsthb.f.
+ 
+
+    PREPOT has been called for the H3 potential energy surface LSTH surface b
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .2586217742E-01
+
+
+ 
+  **** thru h3lsthb.f               ****  
+ 
+  **** doing h3lsth.f                ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** vh2   === End of Compilation 3 ===
+** spl1d2   === End of Compilation 4 ===
+** vbigr   === End of Compilation 5 ===
+** ptpacm   === End of Compilation 6 ===
+1501-510  Compilation successful for file h3lsth.f.
+ 
+
+    PREPOT has been called for the H3 potential energy surface LSTH
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .2586904894E-01
+
+
+ 
+  **** thru h3lsth.f                ****  
+ 
+  **** doing oh2dimrmos.f            ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** prepot2   === End of Compilation 3 ===
+** pot2   === End of Compilation 4 ===
+** spline   === End of Compilation 5 ===
+** ptpacm   === End of Compilation 6 ===
+1501-510  Compilation successful for file oh2dimrmos.f.
+ 
+
+
+                             COLLINEAR POTENTIAL PARAMETERS
+
+
+
+  RMOFIT to DIM surface with BEBO continuations
+
+
+  STEP FOR NUMERICAL DERIVATIVE = .8000000000E-08
+  POTENTIAL INFORMATION:
+
+  R1S,R2S,VSP =    2.21208   2.21531 109.48900
+  BC: DE,RE,BE =            109.48900   1.47341   1.94200
+  PHI,DE,RE,BE =     .00000 109.44090   1.47341   1.94244
+  PHI,DE,RE,BE =    2.00000 109.42120   1.47426   1.94054
+  PHI,DE,RE,BE =    4.00000 109.40040   1.47685   1.93621
+  PHI,DE,RE,BE =    6.00000 109.37750   1.48121   1.92956
+  PHI,DE,RE,BE =   18.00000 108.84120   1.54528   1.82575
+  PHI,DE,RE,BE =   24.00000 107.74170   1.59918   1.71996
+  PHI,DE,RE,BE =   30.00000 105.51170   1.65596   1.60389
+  PHI,DE,RE,BE =   34.00000 103.02570   1.68161   1.53886
+  PHI,DE,RE,BE =   38.00000  99.66266   1.68040   1.49075
+  PHI,DE,RE,BE =   44.00000  96.30693   1.62635   1.52568
+  PHI,DE,RE,BE =   48.00000  96.37480   1.57227   1.62058
+  PHI,DE,RE,BE =   54.00000  98.11765   1.48616   1.78898
+  PHI,DE,RE,BE =   60.00000 100.01380   1.40880   1.94284
+  PHI,DE,RE,BE =   76.00000 102.98220   1.27371   2.22264
+  PHI,DE,RE,BE =   86.00000 103.89290   1.24172   2.29416
+  PHI,DE,RE,BE =   88.00000 104.03090   1.23982   2.29911
+  PHI,DE,RE,BE =   90.00000 104.15720   1.23939   2.30107
+  AB: DE,RE,BE =            105.64000   1.24148   2.30480
+  FOR ASYMPTOTE, MO PARAMETER VALUE = (ASYMP. VALUE) + XP(-A*(RI-RIS))
+          (CBC(I),ABC(I),I = 1,3) =         -.04816        7.87322         .00000        7.87322         .00044        7.87322
+          (CAB(I),AAB(I),I = 1,3) =        -1.48280        1.93207        -.00208        1.93207        -.00373        1.93207
+
+
+                             BENDING POTENTIAL PARAMETERS
+
+
+
+
+
+ DISSOCIATION ENERGY (KCAL/MOLE)                       106.5600000000
+
+ MORSE BETA (RECIPROCAL ANGSTROMS)                       2.0794200000
+
+ EQUILIBRIUM DISTANCES (ANGSTROMS)                        .9696600000         .7414400000         .9696600000
+
+ PAULING PARAMETER (ANGSTROMS)                            .2600000000
+
+ GAMMA (NO UNITS)                                         .4131000000
+
+ RBB (ANGSTROMS)                                          .7414400000
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .9722000561E-01
+
+
+ 
+  **** thru oh2dimrmos.f            ****  
+ 
+  **** doing oh2j2adp.f              ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** prem2   === End of Compilation 3 ===
+** potm3   === End of Compilation 4 ===
+** rmos   === End of Compilation 5 ===
+** pot2d   === End of Compilation 6 ===
+** ptpacm   === End of Compilation 7 ===
+** spl1d1   === End of Compilation 8 ===
+** spl1b1   === End of Compilation 9 ===
+** spl1b2   === End of Compilation 10 ===
+1501-510  Compilation successful for file oh2j2adp.f.
+ 
+
+    PREPOT has been called for the A'' OH2 potential energy surface J2
+
+    Potential energy surface parameters:
+
+    Switching function parameter, n=                 2
+    Switching function, Fn(chi) = sin**2((pi/2)*Fn-1(chi))
+    where F0(chi) = sin**2(chi/2)
+    cos(chi) = 0.5*(R(1)**2 - R(3)**2)/R(2)*rho
+    rho**2 = R**2 + a**2,  a=                      4.0000000E-01
+
+    Parameters for the rotated-Morse-oscillator-spline fit
+    Accurate Morse parameters are used for both asymptotes
+    Potential data in atomic units, THETA in Radians
+
+    THETA:         .00000      .17453      .34907      .52360
+                   .65153      .69813      .87266     1.04720
+                  1.22173     1.39626     1.57080
+
+    DE:            .17445      .17155      .16682      .15840
+                   .15440      .15488      .16026      .16601
+                   .16813      .16918      .16981
+
+    LE:           2.78521     2.78829     2.89223     3.03566
+                  3.08951     3.08460     2.89997     2.63919
+                  2.45627     2.35044     2.34783
+
+    BETA:         1.02893     1.00888      .93675      .81943
+                   .75990      .75302      .85822      .99104
+                  1.09630     1.17948     1.21483
+
+    Parameters for the bending correction
+    Bond                                      O-H        H-H        H-O
+    Equilibrium bond lengths (Angstroms):      .96966     .74144     .96966
+    Dissociation energy (kcal/mol):         106.56000  109.47200  106.56000
+    Morse beta parameter (Angstroms**-1):   2.07942000E+00
+    Pauling parameter (Angstroms):          2.60000000E-01
+    RBB (Angstroms):                        7.41440000E-01
+    Gamma for the bending correction:       2.10820000E-01  5.42027000E+00
+                                           -1.44235000E+00
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000498    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      .0000000000E+00
+
+
+  Multiple Energies
+  e1 =      .0000000000E+00
+  e2 =      .0000000000E+00
+  e3 =      .0000000000E+00
+
+
+ 
+  **** thru oh2j2adp.f              ****  
+ 
+  **** doing oh2j3ap.f               ****  
+ 
+** prepot   === End of Compilation 1 ===
+** pot   === End of Compilation 2 ===
+** prem2   === End of Compilation 3 ===
+** potj3   === End of Compilation 4 ===
+** rmos   === End of Compilation 5 ===
+** pot2d   === End of Compilation 6 ===
+** ptpacm   === End of Compilation 7 ===
+** spl1d1   === End of Compilation 8 ===
+** spl1b1   === End of Compilation 9 ===
+** spl1b2   === End of Compilation 10 ===
+1501-510  Compilation successful for file oh2j3ap.f.
+ 
+
+    PREPOT has been called for the A' OH2 potential energy surface J3
+
+    Potential energy surface parameters:
+
+    Switching function parameter, n=                 2
+    Switching function, Fn(chi) = sin**2((pi/2)*Fn-1(chi))
+    where F0(chi) = sin**2(chi/2)
+    cos(chi) = 0.5*(R(1)**2 - R(3)**2)/R(2)*rho
+    rho**2 = R**2 + a**2,  a=                      4.0000000E-01
+
+    Parameters for the rotated-Morse-oscillator-spline fit
+    Accurate Morse parameters are used for both asymptotes
+    Potential data in atomic units, THETA in Radians
+
+    THETA:         .00000      .17453      .34907      .52360
+                   .65153      .69813      .87266     1.04720
+                  1.22173     1.39626     1.57080
+
+    DE:            .17445      .17126      .16631      .15774
+                   .15368      .15415      .15953      .16535
+                   .16762      .16889      .16981
+
+    LE:           2.78521     2.78829     2.89223     3.03566
+                  3.08951     3.08460     2.89997     2.63919
+                  2.45627     2.35044     2.34783
+
+    BETA:         1.02893     1.00946      .93818      .82112
+                   .76164      .75477      .86018      .99300
+                  1.09799     1.18017     1.21483
+
+    Parameters for the bending correction
+    Bond                                      O-H        H-H        H-O
+    Equilibrium bond lengths (Angstroms):      .96966     .74144     .96966
+    Dissociation energy (kcal/mol):         106.56000  109.47200  106.56000
+    Morse beta parameter (Angstroms**-1):   2.07942000E+00
+    Pauling parameter (Angstroms):          2.60000000E-01
+    RBB (Angstroms):                        7.41440000E-01
+    Gamma for the bending correction:       1.54883000E-01  6.85243000E-01
+                                           -1.73902000E-01
+  Geometry
+  R1 =      1.500000000    
+  R2 =      2.000000000    
+  R3 =      3.000000000    
+
+  Energy
+  Energy =      109.4700000    
+
+
+ 
+  **** thru oh2j3ap.f               ****  
+ 
