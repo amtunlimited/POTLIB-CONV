@@ -27,7 +27,7 @@ c****************************************************
       COMMON /INFOCM/ CARTNU(NATOM,3),INDEXES(NATOM),IRCTNT,  
      X                NATOMS,ICARTR,MDER,MSURF,REF
       COMMON /POTCM/  de(3),re(3),b(3),s(3),rj,ap,at,bp,q2,
-     X                q4,ckcau,cangau,c1,c2,spl(3),pf(3)           
+     X                q4,ckcau,cangau,c1,c2,spl(3),pf(3),sqrt3           
 c****************************************************         
 c any data or labeled commons for PTPACM or POT               
 c****************************************************         
@@ -45,6 +45,23 @@ c****************************************************
 c****************************************************         
 c any assignments for labeled common share with pot           
 c****************************************************
+
+      data de     / 106.447d0, 109.458d0, 106.447d0 /
+      data re     / 1.2732d0, 0.74127d0, 1.2732d0 /
+      data b      / 1.8674d0, 1.9413d0, 1.8674d0 /
+      data s      / 0.1835d0, 0.167d0, 0.1835d0 /
+      data rj     / 0.0758016022d0 /
+      data ap     / 0.0008627355d0 /
+      data at     / 0.2981969860d0 /
+      data bp     / 0.1439106543d0 /
+      data q2     / 0.6940323070d0 /
+      data q4     / 1.6963092005d0 /
+      data ckcau  / 627.5095d0 /
+      data cangau / 0.529177249d0 /
+      data c1     / 3.1053877618397071175758280546d+0 /
+      data c2     / -1.8942608491155350536449828878d+0 /
+      data spl    / 2.64768380d0, 1.87014417d0, 4.51782797d0 /         
+
       do 10 i=1,3
         de(i)=de(i)/ckcau
         re(i)=re(i)/cangau
@@ -75,7 +92,7 @@ c****************************************************
       COMMON /PT4CM/ ENGYES(ISURF),DEESDR(N3ATOM,ISURF)       
       COMMON /PT5CM/ ENGYIJ(JSURF),DEIJDR(N3ATOM,JSURF)
       COMMON /POTCM/  de(3),re(3),b(3),s(3),rj,ap,at,bp,q2,
-     X                q4,ckcau,cangau,c1,c2,spl(3),pf(3)     
+     X                q4,ckcau,cangau,c1,c2,spl(3),pf(3),sqrt3     
       dimension e(3)             
 c****************************************************         
 c any labeled common statements for PTPACM or POT             
@@ -176,7 +193,7 @@ c
       e(2)=(tp11-tp22)*ax*ay+tp12*(ax*ax-ay*ay)
       e(3)=tp11*ay*ay+2.d0*tp12*ax*ay+tp22*ax*ax
       
-      ENGYGS=e(NFLAG(9)+1)
+      ENGYGS=e(1)
 c      ENGYGS=tp11*ax*ax-2.d0*tp12*ax*ay+tp22*ay*ay
 
 c End of original code        
@@ -199,7 +216,7 @@ c End of original code
       COMMON /INFOCM/ CARTNU(NATOM,3),INDEXES(NATOM),IRCTNT,  
      X                NATOMS,ICARTR,MDER,MSURF,REF 
       COMMON /POTCM/  de(3),re(3),b(3),s(3),rj,ap,at,bp,q2,
-     X                q4,ckcau,cangau,c1,c2,spl(3),pf(3)            
+     X                q4,ckcau,cangau,c1,c2,spl(3),pf(3),sqrt3            
 c****************************************************         
 c all other labeled commons for PREPOT or POT                 
 c****************************************************         
@@ -209,21 +226,7 @@ c****************************************************
 c****************************************************         
 c all other data statements                                   
 c****************************************************
-      data de     / 106.447d0, 109.458d0, 106.447d0 /
-      data re     / 1.2732d0, 0.74127d0, 1.2732d0 /
-      data b      / 1.8674d0, 1.9413d0, 1.8674d0 /
-      data s      / 0.1835d0, 0.167d0, 0.1835d0 /
-      data rj     / 0.0758016022d0 /
-      data ap     / 0.0008627355d0 /
-      data at     / 0.2981969860d0 /
-      data bp     / 0.1439106543d0 /
-      data q2     / 0.6940323070d0 /
-      data q4     / 1.6963092005d0 /
-      data ckcau  / 627.5095d0 /
-      data cangau / 0.529177249d0 /
-      data c1     / 3.1053877618397071175758280546d+0 /
-      data c2     / -1.8942608491155350536449828878d+0 /
-      data spl    / 2.64768380d0, 1.87014417d0, 4.51782797d0 /         
+      
       END
       
       SUBROUTINE DLAEV2( A, B, C, RT1, RT2, CS1, SN1 )
