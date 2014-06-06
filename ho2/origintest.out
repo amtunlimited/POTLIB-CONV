@@ -1,0 +1,16 @@
+
+    PREPOT has been called for H + OO
+    Potential energy function by Melius and Blint
+
+    Potential energy surface parameters:
+    Bond                                      H-O        O-O        O-H
+         Dissociation energies (hartrees):    0.15590    0.17790    0.15590
+         Morse betas (reciprocal bohr):       1.26700    1.46940    1.26700
+         Equilibrium bond lengths (bohr):     1.84600    2.31580    1.84600
+         Constant added to the energy:                   -2.2000295721E-02 hartree atomic units
+                                                         -5.9865136688E-01 eV
+                                                         -1.3805394568E+01 kcal/mol
+ ENERGY IS   0.73610859890732872     
+ DER(1) IS   -3.0949100762117907     
+ DER(2) IS   -2.4418295105658840     
+ DER(3) IS    1.0244443408798387     

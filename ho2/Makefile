@@ -1,8 +1,8 @@
 #Makefile made for the system of convertion of POTLIB code
 #Written by Aaron Tagliaboschi <aaron.tagliaboschi@gmail.com>
 
-SYSTEM=#Put your system name here
-FULLNAME=#Put full name of library here)
+SYSTEM=ho2
+FULLNAME=ho2
 FC=gfortran#Put fortran copiler command here
 
 origintest: $(FULLNAME)_original.f origintest.f
