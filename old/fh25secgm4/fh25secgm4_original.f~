@@ -197,6 +197,12 @@ C   IX: Compute the total energy which is a sum of the extended-Hartree-Fock
 C       and the dynamical correlation terms.
 C
        ENERGY = ECOR2B + ECOR3B + ELOND + E3C + DISSE(2)
+       WRITE (6,*) "Checkpoint Alpha"
+       WRITE (6,*) ECOR2B
+       WRITE (6,*) ECOR3B
+       WRITE (6,*) ELOND
+       WRITE (6,*) E3C
+       WRITE (6,*) DISSE(2)
 C
 C   Compute the derivatives of the energy with respect to the coordinates.
 C
@@ -257,6 +263,11 @@ C
      2         -DP3(3)*CHF(10)/R3P10
 C
       ECOR2B = COR2R1 + COR2R2 + COR2R3
+      WRITE (6,*) "Checkpoint Bravo"
+      WRITE (6,*) COR2R1
+      WRITE (6,*) COR2R2
+      WRITE (6,*) COR2R3
+      WRITE (6,*) R(2)
 C
 C   Compute the derivatives w.r.t. R(i) if NDER = 1
 C
