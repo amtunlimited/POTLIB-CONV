@@ -1,0 +1,20 @@
+      PROGRAM ORIGINTEST
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      COMMON /PT31CM/ R(3), ENERGY, DEDR(3)
+      COMMON /PT32CM/ NSURF, NDER, NFLAG(20)
+      
+      
+      R(1)=0.9
+      R(2)=1.9
+      R(3)=1.0
+      NDER = 1
+      
+      call PREPOT()
+      call POT()
+      
+      WRITE (6,*) "ENERGY is ", ENERGY
+      WRITE (6,*) "DEDR(1) is ", DEDR(1)
+      WRITE (6,*) "DEDR(2) is ", DEDR(2)
+      WRITE (6,*) "DEDR(3) is ", DEDR(3)
+      
+      END
