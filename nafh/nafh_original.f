@@ -89,10 +89,9 @@ C               The parameter NSURF may have the values 1, 2, or 3.
 C               These values select a particular diabatic surface:
 C               NSURF = 1  diabatic surface which is the lower one
 C                          in the reactant channel
-C               NSURF = 2  diabatic coupling surface
-C               NSURF = 3  diabatic surface which is the upper one
-C                          in the reactant channel
-C
+c               NSURF = 2  diabatic coupling surface
+c               NSURF = 3  diabatic surface which is the upper one
+c                          in the reactant channel
         implicit double precision (a-h,o-z)
 
         dimension r(nt,3),e(nt)
