@@ -1,0 +1,22 @@
+
+    PREPOT has been called for the FH2 surface 5SECGM4
+    SCALE = 1.0, a = 0.103, b = 1/sqrt(.38), R0 = 2.0
+
+    Potential parameters
+
+    Parameters for the H2 diatomic:
+       a4   =  -0.393828    a5  =   0.167810   a6  =  -0.017081
+
+    Parameters for the FH diatomic:
+       Deff =   2.633449    a7  =   0.417523   a8  =  -0.090289
+       c11  =  -0.071547    c12 =  -0.108550
+       c21  =   0.050461    c22 =  -0.370255
+
+    Parameters for the 3-body term:
+       J    =   0.296668    p   =   0.950000   c1  =   0.180000
+       c2   =   2.140000    c3  =   0.078606   c4  =   0.180000
+
+ ENERGY is    1.5577511006206259     
+ DEDR(1) is   -1.9990246052319460     
+ DEDR(2) is   -3.9936604929325666E-002
+ DEDR(3) is   -2.6335701039070787     
